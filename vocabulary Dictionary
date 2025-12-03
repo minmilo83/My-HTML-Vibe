@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>雙字典批次查詢工具</title>
+    
+    <style>
+        /* --- 1. CSS 變數定義 (核心控制器) --- */
+        :root {
+            /* === 預設：淺色模式 (Light Mode / 基於 V27.0) === */
+            --bg-gradient: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            --text-color: #2d3436; /* 深灰字 */
+            
+            /* 玻璃材質 */
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.8);
+            --glass-shadow: 0 8px 32px 0 rgba(100, 100, 111, 0.15);
+            
+            /* 輸入框 */
+            --input-bg: rgba(255, 255, 255, 0.8);
+            --input-focus-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            
+            /* 文字發光 (淺色模式下很弱或沒有) */
+            --text-glow: none;
+            
+            /* 按鈕主題色 (淺色模式：較深沈，對比度高) */
+            --btn-cambridge: #0088AA;
+            --btn-dreye: #28a745;
+            --btn-all: #6f42c1;
+            
+            /* 按鈕文字色 */
+            --btn-text: #2d3436;
+            
+            /* 警告色 */
+            --warning-color: #d63031;
+        }
+
+        [data-theme="dark"] {
+            /* === 切換後：深色模式 (Dark Mode / 基於 V26.0) === */
+            --bg-gradient: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            --text-color: #ffffff; /* 白字 */
+            
+            /* 玻璃材質 */
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+            
+            /* 輸入框 */
+            --input-bg: rgba(0, 0, 0, 0.3);
+            --input-focus-shadow: 0 0 25px rgba(255, 255, 255, 0.2);
+            
+            /* 文字發光 (深色模式下強烈) */
+            --text-glow: 0 0 15px rgba(255, 255, 255, 0.3);
+            
+            /* 按鈕主題色 (深色模式：螢光霓虹，強調發光) */
+            --btn-cambridge: #00d2ff;
+            --btn-dreye: #00ff88;
+            --btn-all: #d580ff;
+            
+            /* 按鈕文字色 */
+            --btn-text: #ffffff;
+            
+            /* 警告色 */
+            --warning-color: #ff7675;
+        }
+
+        /* --- 2. 全局佈局 --- */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            padding: 40px 20px; 
+            text-align: center; 
+            background: var(--bg-gradient); 
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            transition: all 0.6s ease-in-out; /* 平滑切換動畫 */
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* --- 3. 液態玻璃通用類別 --- */
+        .liquid-glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            border-radius: 24px;
+            transition: all 0.4s ease;
+        }
+
+        /* --- 4. 標題與文字 --- */
+        h2 { 
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+            text-shadow: var(--text-glow);
+            transition: all 0.5s ease;
+        }
+
+        .warning-text {
+            font-size: 0.9em;
+            margin-bottom: 25px;
+            font-weight: 600;
+            color: var(--warning-color);
+            opacity: 0.9;
+            transition: color 0.5s ease;
+        }
+
+        /* --- 5. 輸入框 --- */
+        #wordInput { 
+            width: 90%; 
+            max-width: 550px; 
+            padding: 20px; 
+            font-size: 18px; 
+            line-height: 1.6; 
+            margin-bottom: 40px;
+            color: var(--text-color);
+            outline: none;
+            background: var(--input-bg);
+            border: 1px solid var(--glass-border);
+        }
+        #wordInput::placeholder {
+            color: var(--text-color);
+            opacity: 0.5;
+        }
+        #wordInput:focus {
+            box-shadow: var(--input-focus-shadow), inset 0 0 10px rgba(255,255,255,0.1);
+            border-color: var(--btn-cambridge); /* 聚焦時使用主色調 */
+        }
+
+        /* --- 6. 按鈕樣式 (Liquid Glass + Q彈) --- */
+        .button-group {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 40px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap; 
+        }
+
+        .search-button { 
+            padding: 15px 35px; 
+            font-size: 16px; 
+            font-weight: 600;
+            cursor: pointer; 
+            white-space: nowrap;
+            color: var(--btn-text);
+            
+            /* 透明背景，依賴 Glass 效果 */
+            background: rgba(255, 255, 255, 0.05); 
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            
+            /* 邊框與 Q 彈動畫 */
+            border-width: 1px;
+            border-style: solid;
+            border-radius: 50px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            position: relative;
+        }
+
+        /* 劍橋按鈕 (藍色) */
+        #cambridgeButton { 
+            border-color: var(--btn-cambridge);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+        #cambridgeButton:hover { 
+            transform: translateY(-5px) scale(1.05);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--btn-cambridge);
+            box-shadow: 0 0 20px var(--btn-cambridge), inset 0 0 10px var(--btn-cambridge);
+            text-shadow: 0 0 5px var(--btn-cambridge);
+        }
+
+        /* Dr.eye 按鈕 (綠色) */
+        #dreyeButton { 
+            border-color: var(--btn-dreye);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+        #dreyeButton:hover { 
+            transform: translateY(-5px) scale(1.05);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--btn-dreye);
+            box-shadow: 0 0 20px var(--btn-dreye), inset 0 0 10px var(--btn-dreye);
+            text-shadow: 0 0 5px var(--btn-dreye);
+        }
+
+        /* 一鍵查詢按鈕 (紫色、圓形水滴) */
+        #allButton {
+            width: 70px;
+            height: 70px;
+            padding: 0;
+            border-radius: 50%; /* 正圓 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            border-color: var(--btn-all);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+        #allButton:hover {
+            transform: translateY(-8px) scale(1.15) rotate(10deg);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--btn-all);
+            box-shadow: 0 0 25px var(--btn-all), inset 0 0 10px var(--btn-all);
+            text-shadow: 0 0 5px var(--btn-all);
+        }
+
+        /* --- 7. 說明區塊 --- */
+        .templates { 
+            width: 90%;
+            max-width: 550px;
+            padding: 30px; 
+            text-align: left;
+            margin-bottom: 50px;
+        }
+        .templates h3 { 
+            margin-top: 0;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 10px;
+            opacity: 0.8;
+        }
+        .templates ul { list-style: none; padding: 0; }
+        .templates li { margin-bottom: 8px; }
+
+        /* --- 8. 主題切換按鈕 (漂浮) --- */
+        #themeToggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--glass-shadow);
+        }
+        #themeToggle:hover {
+            transform: rotate(180deg) scale(1.1);
+            box-shadow: 0 0 15px var(--text-color);
+        }
+
+    </style>
+</head>
+<body>
+
+    <button id="themeToggle" onclick="toggleTheme()" title="切換深淺色模式">🌙</button>
+
+    <h2>📚 雙字典批次查詢工具</h2>
+
+    <p class="warning-text">⚠️ 點擊按鈕無反應時，請務必嘗試「重新整理」(Ctrl/Cmd + Shift + R) 。</p>
+
+    <textarea id="wordInput" class="liquid-glass" rows="6" placeholder="請輸入單字，一行一個。例如：&#10;paradigm&#10;subsume&#10;tacit&#10;elicit&#10;ad hoc&#10;adage"></textarea>
+
+    <div class="button-group">
+        <button id="cambridgeButton" class="search-button liquid-glass" onclick="openDictionaries(0)">劍橋詞典</button>
+        <button id="dreyeButton" class="search-button liquid-glass" onclick="openDictionaries(1)">譯典通</button>
+        <button id="allButton" class="search-button liquid-glass" onclick="openAllDictionaries()" title="一鍵查詢全部">🟣</button> 
+    </div>
+
+    <div class="templates liquid-glass">
+        <h3>🎯 使用說明</h3>
+        <ul>
+            <li><strong>劍橋詞典</strong>：左側按鈕 (藍光)</li>
+            <li><strong>Dr.eye</strong>：中間按鈕 (綠光)</li>
+            <li><strong>一鍵全開</strong>：右側圓形按鈕 (紫光)</li>
+        </ul>
+    </div>
+
+    <script>
+        // --- 1. 主題切換邏輯 ---
+        function toggleTheme() {
+            const body = document.body;
+            const toggleButton = document.getElementById('themeToggle');
+            const currentTheme = body.getAttribute('data-theme');
+            
+            if (currentTheme === 'dark') {
+                // 切換回淺色模式
+                body.removeAttribute('data-theme');
+                toggleButton.textContent = '🌙'; // 顯示月亮 (表示可切到深色)
+            } else {
+                // 切換到深色模式
+                body.setAttribute('data-theme', 'dark');
+                toggleButton.textContent = '☀️'; // 顯示太陽 (表示可切到淺色)
+            }
+        }
+        
+        // --- 2. 字典網址模板 ---
+        const DICTIONARY_TEMPLATES = [
+            // 劍橋詞典: 使用精簡路徑，結尾保留斜線，讓程式自動拼接
+            "https://dictionary.cambridge.org/zht/%E8%A9%9E%E5%85%B8/%E8%8B%B1%E8%AA%9E-%E6%BC%A2%E8%AA%9E-%E7%B9%81%E9%AB%94/",
+            // Dr.eye 譯典通
+            "https://yun.dreye.com/dict_new/dict.php?w="
+        ];
+
+        const BASE_DELAY = 400; 
+
+        // --- 3. 開啟單一字典 ---
+        function openDictionaries(dictionaryIndex, isBatchMode = false) {
+            const wordInput = document.getElementById('wordInput');
+            const inputContent = wordInput.value.trim(); 
+
+            if (!inputContent) {
+                alert('請在文本區輸入至少一個單字！');
+                return;
+            }
+            
+            const wordsToSearch = inputContent.split('\n')
+                                              .map(word => word.trim())
+                                              .filter(word => word.length > 0);
+
+            if (wordsToSearch.length === 0) {
+                alert('文本區內沒有找到有效的單字。');
+                return;
+            }
+
+            if (!isBatchMode) {
+                wordInput.value = '';
+                wordInput.focus();
+            }
+
+            let totalDelay = 0; 
+            const targetTemplate = DICTIONARY_TEMPLATES[dictionaryIndex];
+            
+            wordsToSearch.forEach((word, index) => {
+                totalDelay += BASE_DELAY;
+
+                setTimeout(() => {
+                    let finalUrl = "";
+                    
+                    if (dictionaryIndex === 0) {
+                        // 劍橋詞典邏輯：轉小寫 + 空格變連字號
+                        const cambridgeWordFormatted = word.toLowerCase().replace(/\s/g, '-');
+                        finalUrl = targetTemplate + cambridgeWordFormatted;
+                        
+                    } else if (dictionaryIndex === 1) {
+                        // Dr.eye 邏輯：空格變加號
+                        const dreyeWord = word.replace(/\s/g, '+');
+                        finalUrl = targetTemplate + dreyeWord + "&hidden_codepage=01"; 
+                        
+                    } else {
+                        finalUrl = targetTemplate + encodeURIComponent(word);
+                    }
+                    
+                    window.open(finalUrl, '_blank'); 
+                    
+                    if (!isBatchMode && index === wordsToSearch.length - 1) {
+                         setTimeout(() => {
+                            const dictName = dictionaryIndex === 0 ? '劍橋詞典' : 'Dr.eye 譯典通';
+                            alert(`✅ ${dictName} 所有 ${wordsToSearch.length} 個單字的查詢已完成開啟！`);
+                         }, 1000); 
+                    }
+                    
+                }, totalDelay); 
+            });
+
+            return totalDelay; 
+        }
+
+        // --- 4. 一鍵查詢全部 ---
+        function openAllDictionaries() {
+             const wordInput = document.getElementById('wordInput');
+             const inputContent = wordInput.value.trim(); 
+
+            if (!inputContent) {
+                alert('請在文本區輸入至少一個單字！');
+                return;
+            }
+            
+            const wordsToSearch = inputContent.split('\n')
+                                              .map(word => word.trim())
+                                              .filter(word => word.length > 0);
+
+            if (wordsToSearch.length === 0) {
+                alert('文本區內沒有找到有效的單字。');
+                return;
+            }
+
+            const cambridgeDelay = openDictionaries(0, true);
+            
+            // 延遲 100ms 後執行 Dr.eye
+            setTimeout(() => {
+                 openDictionaries(1, true);
+                 
+                 wordInput.value = '';
+                 wordInput.focus();
+                 
+                 setTimeout(() => {
+                    alert(`✅ 雙字典共 ${wordsToSearch.length * 2} 個分頁已全部開啟！`);
+                 }, 1000 + (wordsToSearch.length * BASE_DELAY)); 
+
+            }, cambridgeDelay + 100); 
+        }
+    </script>
+</body>
+</html>
