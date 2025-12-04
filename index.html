@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Liquid Glass 雙字典工具 + 水滴游標 + 番茄鐘</title>
+
+<style>
+/* ---------------------------
+   Core design tokens (light/dark)
+   --------------------------- */
+:root{
+  --bg-gradient: linear-gradient(135deg,#fdfbfb 0%,#ebedee 100%);
+  --text-color:#222;
+  --glass-bg: rgba(255,255,255,0.65);
+  --glass-border: rgba(255,255,255,0.8);
+  --glass-shadow: 0 8px 32px rgba(100,100,111,0.12);
+  --accent-1: #00bcd4;
+  --accent-2: #9b59b6;
+  --accent-3: #2ecc71;
+  --btn-text: #1f2a2b;
+  --ui-radius: 22px;
+  --glass-strong: rgba(255,255,255,0.28);
+  --glass-weak: rgba(255,255,255,0.12);
+  --glass-contrast: rgba(255,255,255,0.9);
+  --shadow-strong: 0 10px 30px rgba(0,0,0,0.18);
+  --cursor-size: 96px;
+  --cursor-inner: 62px;
+  --glass-border-2: rgba(255,255,255,0.18);
+}
+
+/* dark theme */
+[data-theme="dark"]{
+  --bg-gradient: linear-gradient(135deg,#0f0c29,#302b63,#24243e);
+  --text-color:#eaf6ff;
+  --glass-bg: rgba(255,255,255,0.04);
+  --glass-border: rgba(255,255,255,0.12);
+  --glass-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  --glass-strong: rgba(255,255,255,0.06);
+  --glass-weak: rgba(255,255,255,0.03);
+  --glass-contrast: rgba(255,255,255,0.18);
+  --shadow-strong: 0 10px 30px rgba(0,0,0,0.6);
+  --btn-text:#0d1117;
+  --accent-1:#00d2ff;
+  --accent-2:#d580ff;
+  --accent-3:#00ff88;
+}
+
+/* ---------------------------
+   Layout
+   --------------------------- */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  padding:40px 24px;
+  font-family: "Noto Sans TC", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial;
+  background: var(--bg-gradient);
+  color:var(--text-color);
+  min-height:100vh;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  transition:background .45s ease, color .45s ease;
+  overflow:hidden;
+}
+
+/* Page container */
+.container{
+  width:100%;
+  max-width:1100px;
+  display:grid;
+  grid-template-columns: 1fr 420px;
+  gap:28px;
+  align-items:start;
+}
+
+/* Left column: main tool */
+.card{
+  padding:26px;
+  border-radius:18px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.25), rgba(255,255,255,0.08));
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+/* header */
+.header{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  justify-content:space-between;
+}
+.header h1{
+  margin:0;
+  font-weight:600;
+  letter-spacing:1px;
+}
+
+/* warning line */
+.warning-text{
+  color: #e74c3c;
+  font-weight:600;
+  margin-top:10px;
+}
+
+/* textarea */
+#wordInput{
+  width:100%;
+  min-height:180px;
+  padding:18px;
+  border-radius:14px;
+  resize:vertical;
+  font-size:16px;
+  border:1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color:var(--text-color);
+  outline:none;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06) inset;
+}
+
+/* buttons group */
+.button-group{
+  margin-top:18px;
+  display:flex;
+  gap:18px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.search-button{
+  padding:12px 24px;
+  border-radius:999px;
+  cursor:pointer;
+  border:1px solid var(--glass-border-2);
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  font-weight:700;
+  letter-spacing:0.6px;
+  transition: transform .35s cubic-bezier(.2,.9,.3,1.2), box-shadow .35s ease, background .25s ease;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+}
+.search-button:hover{ transform: translateY(-8px) scale(1.04); }
+
+/* round main button */
+#allButton{
+  width:72px;height:72px;font-size:26px;padding:0;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:50%;
+}
+
+/* templates area */
+.templates{ margin-top:22px; font-size:14px; color:rgba(0,0,0,0.6) }
+
+/* right column UI */
+.right{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+.clock-card{
+  padding:18px;border-radius:14px;
+  display:flex;flex-direction:column;align-items:center;
+  gap:12px;border:1px solid var(--glass-border);
+  background:var(--glass-bg); box-shadow:var(--glass-shadow);
+}
+#currentTime{ font-size:22px; font-weight:700;}
+
+/* pomodoro area */
+.pomo-card{
+  padding:18px;border-radius:14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  border:1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+.pomo-controls{ display:flex; gap:10px; align-items:center; justify-content:center; margin-top:12px; }
+
+/* small UI */
+.small{
+  font-size:13px;color:rgba(0,0,0,0.6);
+}
+
+/* ---------------------------
+   Language toggle (bottom-right)
+   --------------------------- */
+#languageToggle{
+  position:fixed;
+  right:22px;
+  bottom:22px;
+  width:64px;height:64px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;background:var(--glass-bg);
+  border:1px solid var(--glass-border);cursor:pointer;
+  box-shadow:var(--glass-shadow);z-index:220;
+  transition:transform .35s cubic-bezier(.2,.9,.3,1.2);
+}
+#languageToggle:hover{ transform: scale(1.12) rotate(15deg); }
+
+/* language menu (liquid glass popup) */
+#languageMenu{
+  position:fixed;
+  right:22px;
+  bottom:100px;
+  width:260px;padding:14px;border-radius:20px;
+  display:none;flex-direction:column;gap:10px;
+  z-index:210;
+  background: rgba(255,255,255,0.12);
+  border:1px solid rgba(255,255,255,0.2);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  animation: menuPop .42s cubic-bezier(.31,1.6,.37,1.27);
+}
+@keyframes menuPop{
+  0%{ transform: translateY(18px) scale(.85); opacity:0 }
+  70%{ transform: translateY(-6px) scale(1.05); opacity:1 }
+  100%{ transform: translateY(0) scale(1) }
+}
+.lang-btn{
+  padding:12px;border-radius:14px;text-align:center;cursor:pointer;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.06));
+  border:1px solid rgba(255,255,255,0.08);
+  transition: transform .25s cubic-bezier(.2,.9,.3,1.2), box-shadow .25s;
+  font-weight:700;
+}
+.lang-btn:hover{ transform: translateY(-6px) scale(1.02); box-shadow: 0 10px 24px rgba(0,0,0,0.12) }
+
+/* small helper label for current language */
+#currentLang{ font-size:13px; opacity:0.85; }
+
+/* ---------------------------
+   Custom cursor (water droplet lens)
+   --------------------------- */
+#customCursor{
+  position:fixed;left:0;top:0;pointer-events:none;z-index:999;
+  width:var(--cursor-size);height:var(--cursor-size);
+  display:flex;align-items:center;justify-content:center;
+  transform: translate(-50%, -50%) scale(1);
+  transition: transform .12s linear;
+  will-change: transform, left, top;
+}
+.cursor-lens{
+  width:100%;height:100%;border-radius:50%;
+  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.5), rgba(255,255,255,0.15) 20%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.01) 60%);
+  border: 1px solid rgba(255,255,255,0.22);
+  box-shadow: 0 12px 30px rgba(13,18,20,0.18), inset 0 6px 20px rgba(255,255,255,0.08);
+  backdrop-filter: blur(6px) saturate(160%);
+  -webkit-backdrop-filter: blur(6px) saturate(160%);
+  display:flex;align-items:center;justify-content:center;
+  transition: width .12s ease, height .12s ease, box-shadow .12s ease, transform .08s linear;
+}
+
+/* inner embossed disc */
+.cursor-inner{
+  width:var(--cursor-inner);height:var(--cursor-inner);
+  border-radius:50%;
+  background: linear-gradient(145deg, rgba(255,255,255,0.9), rgba(255,255,255,0.06));
+  box-shadow: inset 0 -6px 18px rgba(0,0,0,0.12), 0 6px 18px rgba(0,0,0,0.12);
+  transform: translateY(-6px);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;color:var(--text-color);
+  opacity:0.95;
+}
+
+/* when hovering interactive - enlarge */
+#customCursor.big .cursor-lens{ transform: scale(1.14); width:110%; height:110%; box-shadow: 0 18px 40px rgba(0,0,0,0.26) }
+
+/* lens "refraction" overlay using mix-blend */
+.refraction{
+  position:absolute;left:0;top:0;width:100%;height:100%;border-radius:50%;
+  background: radial-gradient(circle at 40% 35%, rgba(255,255,255,0.25), rgba(255,255,255,0.02) 25%, transparent 40%);
+  mix-blend-mode: overlay;
+  pointer-events:none;
+  opacity:.9;
+  transform: translateZ(0);
+}
+
+/* ---------------------------
+   Interactive elements distort on proximity
+   --------------------------- */
+.interactive{
+  transition: transform .22s cubic-bezier(.2,.9,.3,1.2), filter .22s ease;
+  will-change: transform, filter;
+}
+
+/* small text warp simulation: we'll apply transform + skew on proximity */
+.text-warp{
+  display:inline-block; transition: transform .2s linear;
+  will-change: transform;
+}
+
+/* ---------------------------
+   Notification (replace alert) - glass toast
+   --------------------------- */
+#toast{
+  position:fixed;left:50%;top:18px;transform:translateX(-50%);z-index:950;
+  min-width:240px; max-width:520px;padding:12px 18px;border-radius:14px;
+  display:none;align-items:center;gap:12px;
+  background: rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);
+  backdrop-filter: blur(12px) saturate(160%);box-shadow:var(--glass-shadow);
+  font-weight:700;
+}
+
+/* ---------------------------
+   Pomodoro circular dial
+   --------------------------- */
+.pomo-ring{
+  width:220px;height:220px;display:grid;place-items:center;position:relative;
+}
+svg.pomo-svg{ width:100%;height:100%; transform: rotate(-90deg); }
+.pomo-center{
+  position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:8px; transform: translateY(6px);
+}
+.time-label{ font-weight:800; font-size:20px; }
+.controls-small{ font-size:13px; color:rgba(0,0,0,0.6) }
+
+/* handle for dragging */
+.handle{
+  position:absolute;width:24px;height:24px;border-radius:50%;
+  background:var(--glass-contrast);box-shadow:0 8px 18px rgba(0,0,0,0.12);
+  transform: translate(-50%,-50%); cursor:grab;
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;
+}
+
+/* small footnote */
+.footnote{ font-size:12px;color:rgba(0,0,0,0.45) }
+
+/* responsive small screens */
+@media (max-width:1000px){
+  .container{ grid-template-columns: 1fr; padding-bottom:120px }
+  #languageMenu{ right:12px; bottom:92px }
+}
+</style>
+</head>
+<body>
+
+<!-- Toast (replaces alert) -->
+<div id="toast" class="liquid-glass" role="status" aria-live="polite"></div>
+
+<!-- Custom cursor -->
+<div id="customCursor">
+  <div class="cursor-lens">
+    <div class="cursor-inner">○</div>
+    <div class="refraction"></div>
+  </div>
+</div>
+
+<!-- Language toggle + popup -->
+<button id="languageToggle" title="切換語言">🌐</button>
+<div id="languageMenu" class="liquid-glass" aria-hidden="true">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+    <div style="font-weight:800">語言 / Language</div>
+    <div id="currentLang" class="small">繁體中文</div>
+  </div>
+  <div class="lang-btn" data-lang="zh-TW">繁體中文</div>
+  <div class="lang-btn" data-lang="en">English</div>
+  <div class="lang-btn" data-lang="ja">日本語</div>
+  <div class="lang-btn" data-lang="ko">한국어</div>
+  <div class="lang-btn" data-lang="zh-CN">简体中文</div>
+  <div class="lang-btn" data-lang="fr">Français</div>
+</div>
+
+<div class="container" role="main">
+
+  <!-- LEFT: main tool -->
+  <div class="card">
+    <div class="header">
+      <div>
+        <h1>📚 雙字典批次查詢工具</h1>
+        <div class="small" id="tagline">支援劍橋 / Dr.eye，以及一鍵開啟全部分頁</div>
+      </div>
+      <div>
+        <button id="themeToggle" class="search-button" title="切換深淺色">🌙</button>
+      </div>
+    </div>
+
+    <p class="warning-text">⚠️ 點擊按鈕無反應時，系統通知會顯示原因而非跳轉新頁。</p>
+
+    <textarea id="wordInput" rows="8" placeholder="請輸入單字／詞語，建議一行一個。例如：&#10;paradigm&#10;subsume&#10;tacit"></textarea>
+
+    <div class="button-group" style="margin-top:16px;">
+      <button id="cambridgeButton" class="search-button interactive">劍橋詞典</button>
+      <button id="dreyeButton" class="search-button interactive">譯典通 (Dr.eye)</button>
+      <button id="allButton" class="search-button interactive" title="一鍵查詢全部">🟣</button>
+      <button id="openNotify" class="search-button interactive" title="示範通知">示範通知</button>
+    </div>
+
+    <div class="templates small" style="margin-top:20px;">
+      <h3 style="margin:0 0 10px 0">🎯 使用說明</h3>
+      <ul>
+        <li>每行一個單字或詞語；可按「一鍵查詢」同時開啟多個分頁（瀏覽器會彈出分頁）。</li>
+        <li>右下地球可切換介面語言（示範，目前會顯示語系代號）。</li>
+        <li>游標為水滴/透鏡，靠近按鈕會出現吸附與扭曲感。</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- RIGHT: clock + pomodoro -->
+  <div style="display:flex;flex-direction:column;gap:18px">
+
+    <div class="clock-card card">
+      <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+        <div>
+          <div class="small">現在時間</div>
+          <div id="currentTime">--:--:--</div>
+        </div>
+        <div style="text-align:right">
+          <div class="small">當前語言</div>
+          <div id="displayLang" style="font-weight:800">zh-TW</div>
+        </div>
+      </div>
+      <div style="margin-top:12px" class="small">（時間會自動更新）</div>
+    </div>
+
+    <div class="pomo-card card">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-weight:800">番茄鐘 / 倒數計時器</div>
+          <div class="small">可自訂時間，最短 10 秒，最長 180 分鐘（每格 10 秒）</div>
+        </div>
+        <div>
+          <button id="startPomo" class="search-button interactive">Start</button>
+          <button id="pausePomo" class="search-button interactive">Pause</button>
+          <button id="resetPomo" class="search-button interactive">Reset</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;align-items:center;margin-top:14px">
+        <div class="pomo-ring" aria-hidden="true">
+          <!-- SVG ring -->
+          <svg class="pomo-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="var(--accent-1)"/>
+                <stop offset="50%" stop-color="var(--accent-2)"/>
+                <stop offset="100%" stop-color="var(--accent-3)"/>
+              </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="40" stroke="rgba(200,200,200,0.18)" stroke-width="8" fill="none"></circle>
+            <circle id="progress" cx="50" cy="50" r="40" stroke="url(#grad)" stroke-width="8" fill="none" stroke-linecap="round"
+              stroke-dasharray="251.2" stroke-dashoffset="251.2"></circle>
+          </svg>
+
+          <div class="pomo-center">
+            <div id="timeRemaining" class="time-label">00:00</div>
+            <div class="controls-small">時長：<span id="setDurationLabel">00:30</span></div>
+          </div>
+
+          <div id="pomoHandle" class="handle" style="left:100%;top:50%;">⇆</div>
+        </div>
+
+        <div style="flex:1">
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="durationInput" type="number" min="10" max="10800" step="10" value="1800" style="width:120px;padding:8px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-bg)">
+            <div class="small">秒（10 秒為一格）</div>
+          </div>
+          <div class="pomo-controls">
+            <button id="decTen" class="search-button interactive" title="減 10 秒">-10s</button>
+            <button id="incTen" class="search-button interactive" title="加 10 秒">+10s</button>
+            <div class="footnote">拖曳圓環右側圓點可調整時間</div>
+          </div>
+
+        </div>
+      </div>
+
+      <div style="margin-top:12px" class="small">提示：計時中可暫停與重設，結束時以通知（畫面跳出）提示。</div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ============================
+   Utility: Replace alert with toast
+   ============================ */
+function showToast(text, type = "info", ms = 2800) {
+  const t = document.getElementById('toast');
+  t.style.display = 'flex';
+  t.innerHTML = (type === 'ok' ? '✅ ' : (type === 'warn'? '⚠️ ' : '')) + text;
+  t.style.opacity = '1';
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>{ t.style.display='none'; }, ms);
+}
+
+/* ============================
+   Theme toggle
+   ============================ */
+const themeToggle = document.getElementById('themeToggle');
+themeToggle.addEventListener('click', ()=>{
+  const body = document.body;
+  if (body.getAttribute('data-theme') === 'dark') {
+    body.removeAttribute('data-theme');
+    themeToggle.textContent = '🌙';
+  } else {
+    body.setAttribute('data-theme','dark');
+    themeToggle.textContent = '☀️';
+  }
+});
+
+/* ============================
+   Dictionary logic (replaces window.open alerts with toast)
+   ============================ */
+const DICTIONARY_TEMPLATES = [
+  "https://dictionary.cambridge.org/zht/%E8%A9%9E%E5%85%B8/%E8%8B%B1%E8%AA%9E-%E6%BC%A2%E8%AA%9E-%E7%B9%81%E9%AB%94/",
+  "https://yun.dreye.com/dict_new/dict.php?w="
+];
+const BASE_DELAY = 300;
+
+function openDictionaries(dictionaryIndex, isBatchMode = false) {
+  const wordInput = document.getElementById('wordInput');
+  const inputContent = wordInput.value.trim();
+  if (!inputContent) { showToast('請在文本區輸入至少一個單字（每行一個）', 'warn'); return; }
+  const wordsToSearch = inputContent.split('\n').map(s=>s.trim()).filter(Boolean);
+  if (wordsToSearch.length === 0) { showToast('找不到有效單字。','warn'); return; }
+
+  if (!isBatchMode) {
+    wordInput.value = '';
+    wordInput.focus();
+  }
+
+  let totalDelay = 0;
+  const targetTemplate = DICTIONARY_TEMPLATES[dictionaryIndex];
+
+  wordsToSearch.forEach((word, idx) => {
+    totalDelay += BASE_DELAY;
+    setTimeout(()=>{
+      let finalUrl = '';
+      if (dictionaryIndex === 0) {
+        const cambridgeWord = word.toLowerCase().replace(/\s+/g,'-');
+        finalUrl = targetTemplate + cambridgeWord;
+      } else {
+        const dreyeWord = word.replace(/\s+/g,'+');
+        finalUrl = targetTemplate + dreyeWord + "&hidden_codepage=01";
+      }
+
+      // Use window.open but we show a toast instead of alert
+      try {
+        window.open(finalUrl, '_blank');
+      } catch(e){
+        // if popup blocked, still show toast
+        console.warn("popup blocked", e);
+      }
+
+      if (!isBatchMode && idx === wordsToSearch.length-1) {
+        setTimeout(()=> showToast('已開啟字典分頁（若被瀏覽器阻擋，請允許彈出視窗）','ok'), 800);
+      }
+    }, totalDelay);
+  });
+
+  return totalDelay;
+}
+
+function openAllDictionaries(){
+  const wordInput = document.getElementById('wordInput');
+  const inputContent = wordInput.value.trim();
+  if (!inputContent) { showToast('請在文本區輸入至少一個單字（每行一個）', 'warn'); return; }
+  const wordsToSearch = inputContent.split('\n').map(s=>s.trim()).filter(Boolean);
+  if (wordsToSearch.length === 0) { showToast('找不到有效單字。','warn'); return; }
+
+  const cambridgeDelay = openDictionaries(0, true);
+  setTimeout(()=>{
+    openDictionaries(1, true);
+    wordInput.value = '';
+    wordInput.focus();
+    setTimeout(()=> showToast(`雙字典共 ${wordsToSearch.length * 2} 個分頁已嘗試開啟`,'ok'), 1200 + (wordsToSearch.length * BASE_DELAY));
+  }, cambridgeDelay + 120);
+}
+
+/* Hook buttons */
+document.getElementById('cambridgeButton').addEventListener('click', ()=> openDictionaries(0));
+document.getElementById('dreyeButton').addEventListener('click', ()=> openDictionaries(1));
+document.getElementById('allButton').addEventListener('click', openAllDictionaries);
+document.getElementById('openNotify').addEventListener('click', ()=> showToast('這是一個系統通知示範。', 'info', 3000));
+
+/* ============================
+   Language toggle logic
+   ============================ */
+const langToggle = document.getElementById('languageToggle');
+const langMenu = document.getElementById('languageMenu');
+const currentLangLabel = document.getElementById('currentLang');
+const displayLang = document.getElementById('displayLang');
+let currentLang = 'zh-TW';
+
+langToggle.addEventListener('click', ()=>{
+  if (langMenu.style.display === 'flex') {
+    langMenu.style.display = 'none';
+    langMenu.setAttribute('aria-hidden','true');
+  } else {
+    langMenu.style.display = 'flex';
+    langMenu.setAttribute('aria-hidden','false');
+  }
+});
+
+document.querySelectorAll('#languageMenu .lang-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const code = btn.getAttribute('data-lang');
+    currentLang = code;
+    currentLangLabel.textContent = btn.textContent;
+    displayLang.textContent = code;
+    langMenu.style.display = 'none';
+    showToast('已切換語言：' + btn.textContent, 'ok', 1600);
+    // TODO: 這裡可以展開成完整 UI 文案切換
+  });
+});
+
+/* Close language menu on outside click */
+document.addEventListener('click', (e)=>{
+  if (!langMenu.contains(e.target) && !langToggle.contains(e.target)) {
+    langMenu.style.display = 'none';
+  }
+});
+
+/* ============================
+   Current clock (right column)
+   ============================ */
+function pad(n){ return n.toString().padStart(2,'0'); }
+function updateClock(){
+  const now = new Date();
+  const s = pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
+  document.getElementById('currentTime').textContent = s;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+/* ============================
+   Custom cursor + proximity interactions
+   ============================ */
+const cursor = document.getElementById('customCursor');
+const lens = cursor.querySelector('.cursor-lens');
+const inner = cursor.querySelector('.cursor-inner');
+
+let mouseX = window.innerWidth/2, mouseY = window.innerHeight/2;
+let isPointerDown = false;
+let lastTarget = null;
+
+function moveCursor(x,y){
+  mouseX = x; mouseY = y;
+  cursor.style.left = x + 'px';
+  cursor.style.top = y + 'px';
+}
+
+/* track hover on interactive elements */
+const interactiveEls = document.querySelectorAll('.interactive');
+function distance(a,b){ return Math.hypot(a.x-b.x, a.y-b.y); }
+
+document.addEventListener('mousemove', (e)=>{
+  moveCursor(e.clientX, e.clientY);
+  // proximity effect
+  let nearest = null; let minDist = 9999;
+  interactiveEls.forEach(el=>{
+    const rect = el.getBoundingClientRect();
+    const center = { x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
+    const d = Math.hypot(e.clientX - center.x, e.clientY - center.y);
+    if (d < minDist){ minDist = d; nearest = {el, rect, center, d}; }
+    // also reset any transforms that are not nearest
+  });
+
+  // default cursor size/shape
+  cursor.classList.remove('big');
+  inner.textContent = '○';
+  lens.style.opacity = '1';
+  // reset transforms for all
+  interactiveEls.forEach(el=>{
+    el.style.transform = '';
+    el.style.filter = '';
+  });
+
+  // if nearest and within threshold -> apply '吸附/扭曲'
+  if (nearest && minDist < 220) {
+    // enlarge cursor
+    cursor.classList.add('big');
+    inner.textContent = '●';
+    // compute force (0..1)
+    const force = Math.max(0, 1 - (minDist / 220));
+    // apply transform to target element
+    const el = nearest.el;
+    // push element slightly away by vector from cursor to center (so it looks attracted)
+    const vecX = (nearest.center.x - e.clientX);
+    const vecY = (nearest.center.y - e.clientY);
+    const tx = -vecX * 0.06 * force;
+    const ty = -vecY * 0.06 * force;
+    const rot = ((vecX/nearest.rect.width) * 8 * force).toFixed(2);
+    el.style.transform = `translate(${tx}px, ${ty}px) rotate(${rot}deg) scale(${1 + 0.06*force})`;
+    // apply warp to text inside if any
+    el.querySelectorAll('.text-warp').forEach(t=>{
+      const wob = (Math.sin((e.clientX + e.clientY)/40) * 6 * force).toFixed(2);
+      t.style.transform = `skewX(${wob}deg) translateY(${(6*force).toFixed(1)}px)`;
+    });
+    // apply filter to simulate refraction of background
+    el.style.filter = `brightness(${1 - 0.1*force}) saturate(${1 + 0.12*force})`;
+  }
+});
+
+/* hide native cursor */
+document.documentElement.style.cursor = 'none';
+
+/* simple pointer down/up scale */
+document.addEventListener('mousedown', ()=>{ cursor.style.transform = 'translate(-50%, -50%) scale(.96)'; isPointerDown=true;});
+document.addEventListener('mouseup', ()=>{ cursor.style.transform = 'translate(-50%, -50%) scale(1)'; isPointerDown=false;});
+
+/* ============================
+   Pomodoro (circular) logic
+   ============================ */
+const progress = document.getElementById('progress');
+const timeRemainingLabel = document.getElementById('timeRemaining');
+const durationInput = document.getElementById('durationInput');
+const setDurationLabel = document.getElementById('setDurationLabel');
+const handle = document.getElementById('pomoHandle');
+
+let totalSeconds = parseInt(durationInput.value,10) || 1800;
+if (totalSeconds < 10) totalSeconds = 10;
+if (totalSeconds > 10800) totalSeconds = 10800;
+durationInput.value = totalSeconds;
+updateDurationLabel();
+
+let remaining = totalSeconds;
+let timerInterval = null;
+let isRunning = false;
+
+function secToClock(s){
+  const mm = Math.floor(s/60);
+  const ss = s % 60;
+  return (mm<10?'0'+mm:mm)+':' + (ss<10?'0'+ss:ss);
+}
+function updateProgress(){
+  const circumference = 2 * Math.PI * 40; // r=40 from SVG
+  const pct = (remaining / totalSeconds);
+  const dash = circumference * pct;
+  progress.style.strokeDashoffset = (circumference - dash).toFixed(2);
+  timeRemainingLabel.textContent = secToClock(remaining);
+}
+
+function updateDurationLabel(){
+  const mm = Math.floor(totalSeconds/60);
+  const ss = totalSeconds%60;
+  setDurationLabel.textContent = `${mm}:${ss.toString().padStart(2,'0')}`;
+}
+
+// init progress stroke array
+(function initStroke(){
+  const circumference = 2 * Math.PI * 40;
+  progress.style.strokeDasharray = circumference.toFixed(2);
+  progress.style.strokeDashoffset = circumference.toFixed(2);
+})();
+
+// controls
+document.getElementById('startPomo').addEventListener('click', ()=>{
+  if (isRunning) return;
+  if (remaining <= 0) remaining = totalSeconds;
+  isRunning = true;
+  timerInterval = setInterval(()=>{
+    if (remaining > 0) {
+      remaining--;
+      updateProgress();
+    } else {
+      clearInterval(timerInterval);
+      isRunning = false;
+      showToast('⏰ 計時結束！', 'ok', 4000);
+      // small pulse on ring
+      progress.animate([{transform:'scale(1)'},{transform:'scale(1.06)'},{transform:'scale(1)'}], {duration:900, easing:'ease-out'});
+    }
+  }, 1000);
+});
+
+document.getElementById('pausePomo').addEventListener('click', ()=>{
+  if (!isRunning) return;
+  clearInterval(timerInterval);
+  isRunning = false;
+  showToast('已暫停計時', 'info', 1500);
+});
+
+document.getElementById('resetPomo').addEventListener('click', ()=>{
+  clearInterval(timerInterval);
+  isRunning = false;
+  remaining = totalSeconds;
+  updateProgress();
+  showToast('已重設', 'info', 1200);
+});
+
+// +/- 10s controls
+document.getElementById('incTen').addEventListener('click', ()=>{
+  totalSeconds = Math.min(10800, totalSeconds + 10);
+  durationInput.value = totalSeconds;
+  remaining = totalSeconds;
+  updateDurationLabel(); updateProgress();
+});
+document.getElementById('decTen').addEventListener('click', ()=>{
+  totalSeconds = Math.max(10, totalSeconds - 10);
+  durationInput.value = totalSeconds;
+  remaining = totalSeconds;
+  updateDurationLabel(); updateProgress();
+});
+
+// duration input change
+durationInput.addEventListener('change', ()=>{
+  let v = parseInt(durationInput.value,10) || 10;
+  if (v < 10) v = 10; if (v > 10800) v = 10800;
+  // normalize to 10s increments
+  v = Math.round(v / 10) * 10;
+  totalSeconds = v; remaining = totalSeconds;
+  durationInput.value = totalSeconds;
+  updateDurationLabel(); updateProgress();
+});
+
+// dragging the handle to set time
+const ringBox = document.querySelector('.pomo-ring');
+let dragging = false;
+handle.addEventListener('mousedown', (ev)=>{
+  ev.preventDefault(); dragging = true; handle.style.cursor='grabbing';
+});
+document.addEventListener('mouseup', ()=>{ dragging=false; handle.style.cursor='grab';});
+document.addEventListener('mousemove', (ev)=>{
+  if (!dragging) return;
+  const rect = ringBox.getBoundingClientRect();
+  const cx = rect.left + rect.width/2;
+  const cy = rect.top + rect.height/2;
+  const angle = Math.atan2(ev.clientY - cy, ev.clientX - cx); // radians
+  // convert angle (-PI..PI) to 0..1 fraction around circle (we set 0 at right)
+  let frac = (angle + Math.PI/2) / (2*Math.PI); // shift by 90deg
+  if (frac < 0) frac += 1;
+  // map frac to seconds (0..total limit)
+  let seconds = Math.round((frac * 10800) / 10) * 10; // step 10s
+  if (seconds < 10) seconds = 10;
+  // temporarily set display while dragging
+  totalSeconds = seconds;
+  remaining = totalSeconds;
+  durationInput.value = totalSeconds;
+  updateDurationLabel(); updateProgress();
+  // position handle visually
+  const r = rect.width/2 * 0.9;
+  const hx = cx + Math.cos(angle) * r;
+  const hy = cy + Math.sin(angle) * r;
+  handle.style.left = ( (hx - rect.left) / rect.width * 100 ) + '%';
+  handle.style.top = ( (hy - rect.top) / rect.height * 100 ) + '%';
+});
+
+// initial set
+remaining = totalSeconds;
+updateProgress();
+
+/* ============================
+   Small accessibility: keyboard shortcuts
+   ============================ */
+document.addEventListener('keydown', (e)=>{
+  // Space toggles start/pause
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (isRunning) {
+      document.getElementById('pausePomo').click();
+    } else {
+      document.getElementById('startPomo').click();
+    }
+  }
+});
+
+/* ============================
+   Add small 'text-warp' to button labels for nicer effect
+   ============================ */
+document.querySelectorAll('.search-button').forEach(btn=>{
+  const span = document.createElement('span'); span.className='text-warp';
+  span.innerHTML = btn.innerHTML;
+  btn.innerHTML = '';
+  btn.appendChild(span);
+});
+
+/* ============================
+   Minor polish: when window blurred, pause cursor animation
+   ============================ */
+window.addEventListener('blur', ()=>{ cursor.style.display='none'; });
+window.addEventListener('focus', ()=>{ cursor.style.display='block'; });
+
+/* ============================
+   finished
+   ============================ */
+showToast('已載入：Liquid Glass 介面與互動功能', 'ok', 1400);
+
+</script>
+
+</body>
+</html>
