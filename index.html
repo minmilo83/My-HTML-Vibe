@@ -3,48 +3,64 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Liquid Glass V31 - 修復版</title>
+<title>Liquid Glass V32 - Ultimate Polish</title>
 
 <style>
 /* =======================
    1. Design Tokens (變數設定)
    ======================= */
 :root {
-  /* 淺色模式 */
-  --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  /* --- 淺色模式 (Light Mode) --- */
+  --bg-gradient: linear-gradient(135deg, #eef2f3 0%, #8e9eab 100%);
   --text-color: #2d3436;
-  --glass-bg: rgba(255, 255, 255, 0.65);
-  --glass-border: rgba(255, 255, 255, 0.8);
-  --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  --accent-gradient: linear-gradient(135deg, #00c6fb 0%, #005bea 100%);
+  
+  /* 玻璃質感：增加厚度感 */
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.9);
+  /* 內陰影創造厚度 (Thickness) */
+  --glass-thickness: inset 0 1px 2px rgba(255, 255, 255, 0.9), inset 0 -1px 2px rgba(0, 0, 0, 0.05);
+  --glass-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
   
   /* 按鈕浮雕 (Light) */
-  --btn-bg: linear-gradient(145deg, rgba(255,255,255,0.6), rgba(255,255,255,0.3));
-  --btn-shadow: 5px 5px 10px rgba(163,177,198,0.3), -5px -5px 10px rgba(255,255,255,0.8);
+  --btn-bg: rgba(255, 255, 255, 0.4);
+  --btn-shadow: 
+    0 8px 20px rgba(0,0,0,0.1), 
+    inset 0 1px 1px rgba(255,255,255,1); /* 上緣高光 */
   
-  /* 游標 */
-  --cursor-size: 50px;
-  --cursor-border: rgba(255, 255, 255, 0.4);
+  /* 游標 (Light) - 強化輪廓與折射 */
+  --cursor-bg: rgba(255, 255, 255, 0.15);
+  --cursor-border: rgba(255, 255, 255, 0.8);
+  --cursor-shadow: 
+    0 0 0 1px rgba(0,0,0,0.05), /* 微弱描邊 */
+    inset 0 0 10px rgba(255,255,255,0.8), /* 內部反光 */
+    0 10px 20px rgba(0,0,0,0.15); /* 投影 */
 }
 
 [data-theme="dark"] {
-  /* 深色模式 - 文字改為淺色 */
+  /* --- 深色模式 --- */
   --bg-gradient: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-  --text-color: #e0f7fa; /* 亮淺藍白，確保清晰 */
-  --glass-bg: rgba(20, 20, 30, 0.4); /* 深色玻璃 */
+  --text-color: #e0f7fa;
+  
+  /* 玻璃質感 (Dark) */
+  --glass-bg: rgba(20, 20, 30, 0.4);
   --glass-border: rgba(255, 255, 255, 0.15);
-  --glass-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-  --accent-gradient: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%);
-
+  --glass-thickness: inset 0 1px 1px rgba(255, 255, 255, 0.2), inset 0 -1px 10px rgba(0,0,0,0.3);
+  --glass-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+  
   /* 按鈕浮雕 (Dark) - 發光感 */
-  --btn-bg: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
-  --btn-shadow: 5px 5px 15px rgba(0,0,0,0.5), -1px -1px 5px rgba(255,255,255,0.1);
+  --btn-bg: rgba(255, 255, 255, 0.05);
+  --btn-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.2);
+  
+  /* 游標 (Dark) - 發光 */
+  --cursor-bg: rgba(255, 255, 255, 0.05);
+  --cursor-border: rgba(255, 255, 255, 0.3);
+  --cursor-shadow: 0 0 15px rgba(255, 255, 255, 0.2), inset 0 0 10px rgba(255,255,255,0.1);
 }
 
 /* =======================
    2. Base Styles
    ======================= */
-* { box-sizing: border-box; cursor: none; /* 隱藏原生滑鼠，使用自定義 */ }
+* { box-sizing: border-box; cursor: none; /* 隱藏原生滑鼠 */ }
 
 body {
   margin: 0; padding: 40px 20px;
@@ -62,17 +78,16 @@ body {
   width: 100%; max-width: 1100px;
 }
 
-/* 液態玻璃卡片 */
+/* 💎 液態玻璃通用卡片 (增強厚度感) */
 .glass-card {
-  padding: 30px; border-radius: 24px;
+  padding: 30px; border-radius: 28px;
   background: var(--glass-bg);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(25px) saturate(120%); -webkit-backdrop-filter: blur(25px) saturate(120%);
   border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
+  box-shadow: var(--glass-shadow), var(--glass-thickness); /* 雙重陰影打造厚度 */
   transition: all 0.3s ease;
 }
 
-/* 標題與文字 */
 h1 { margin: 0 0 10px 0; font-weight: 800; letter-spacing: 1px; }
 .subtitle { font-size: 0.9em; opacity: 0.8; margin-bottom: 20px; }
 .warning-text { color: #ff6b6b; font-weight: bold; margin-bottom: 15px; font-size: 0.9em; }
@@ -85,7 +100,7 @@ h1 { margin: 0 0 10px 0; font-weight: 800; letter-spacing: 1px; }
   background: rgba(255,255,255,0.1);
   color: var(--text-color); font-size: 18px; line-height: 1.6;
   outline: none; transition: 0.3s;
-  box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05);
+  box-shadow: inset 2px 2px 10px rgba(0,0,0,0.05); /* 內凹感 */
 }
 #wordInput:focus {
   background: rgba(255,255,255,0.2);
@@ -93,7 +108,7 @@ h1 { margin: 0 0 10px 0; font-weight: 800; letter-spacing: 1px; }
 }
 
 /* =======================
-   3. Buttons (澎潤浮雕感)
+   3. Buttons (澎潤浮雕 & Q彈)
    ======================= */
 .button-group { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 25px; }
 
@@ -102,24 +117,25 @@ h1 { margin: 0 0 10px 0; font-weight: 800; letter-spacing: 1px; }
   border-radius: 50px;
   border: 1px solid var(--glass-border);
   background: var(--btn-bg);
-  box-shadow: var(--btn-shadow); /* 核心浮雕陰影 */
+  box-shadow: var(--btn-shadow);
   color: var(--text-color);
   font-weight: 700; font-size: 16px;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  backdrop-filter: blur(10px);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Q彈曲線 */
   position: relative; overflow: hidden;
 }
 
-/* Hover 浮起效果 */
+/* Hover 浮起 + 光澤 */
 .search-button:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.15); /* 浮起陰影 */
-  border-color: rgba(255,255,255,1);
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.15), inset 0 0 15px rgba(255,255,255,0.5);
+  border-color: #fff;
 }
 
-/* Active 按壓效果 */
+/* Active 按壓 */
 .search-button:active {
-  transform: scale(0.96);
-  box-shadow: inset 3px 3px 5px rgba(0,0,0,0.1);
+  transform: scale(0.95);
+  box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1);
 }
 
 /* 紫色圓形按鈕 */
@@ -129,71 +145,94 @@ h1 { margin: 0 0 10px 0; font-weight: 800; letter-spacing: 1px; }
   font-size: 24px;
   background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
   color: white; border: none;
+  box-shadow: 0 10px 20px rgba(161, 140, 209, 0.4);
+}
+#allButton:hover {
+  transform: translateY(-5px) scale(1.1);
+  box-shadow: 0 15px 30px rgba(161, 140, 209, 0.6);
 }
 
 /* =======================
-   4. Custom Cursor (水滴透明感)
+   4. Custom Cursor (高速 + 玻璃透鏡)
    ======================= */
 #customCursor {
   position: fixed; top: 0; left: 0; z-index: 9999;
   width: var(--cursor-size); height: var(--cursor-size);
   pointer-events: none;
   transform: translate(-50%, -50%);
-  transition: width 0.3s, height 0.3s, background 0.3s, border-radius 0.3s;
+  transition: width 0.2s, height 0.2s, border-radius 0.2s; /* 移除 transform transition 以提高速度 */
   
-  /* 核心樣式：極致透明 + 玻璃折射 */
-  background: rgba(255, 255, 255, 0.1); /* 極低透明度 */
-  backdrop-filter: blur(3px); /* 輕微模糊背景 */
-  border: 1px solid rgba(255, 255, 255, 0.5); /* 細亮邊框 */
+  /* 💧 液態水滴樣式 */
+  background: var(--cursor-bg);
+  backdrop-filter: blur(4px); /* 輕微模糊背景，保留透視感 */
+  border: 1px solid var(--cursor-border);
   border-radius: 50%;
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); /* 微光暈 */
+  box-shadow: var(--cursor-shadow);
 }
 
-/* 當滑鼠移到互動元素上時 */
+/* 互動狀態：吸附與變形 */
 body.hover-active #customCursor {
-  background: rgba(255, 255, 255, 0.2); /* 稍微明顯一點 */
-  border-color: transparent;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255,255,255,0.5);
+  backdrop-filter: none; /* 吸附時更清晰 */
 }
 
 /* =======================
-   5. Pomodoro Ring (雙色可拖曳)
+   5. Pomodoro Ring (精準軌道)
    ======================= */
 .pomo-container {
   display: flex; flex-direction: column; align-items: center; position: relative;
+  /* 確保 SVG 容器尺寸固定，讓計算精準 */
+  width: 240px; height: 240px; 
+  margin: 0 auto;
 }
 .ring-svg {
-  width: 240px; height: 240px; transform: rotate(-90deg);
+  width: 100%; height: 100%; transform: rotate(-90deg);
+  overflow: visible; /* 允許陰影超出 */
 }
 /* 軌道 (未填滿) */
 .ring-track {
-  fill: none; stroke: rgba(128,128,128, 0.2); stroke-width: 8;
+  fill: none; stroke: rgba(128,128,128, 0.1); stroke-width: 12;
 }
-[data-theme="dark"] .ring-track { stroke: rgba(255,255,255,0.1); }
+[data-theme="dark"] .ring-track { stroke: rgba(255,255,255,0.05); }
 
 /* 進度 (填滿 - 漸層) */
 .ring-progress {
-  fill: none; stroke: url(#gradientStroke); stroke-width: 8; stroke-linecap: round;
+  fill: none; stroke: url(#gradientStroke); stroke-width: 12; stroke-linecap: round;
   stroke-dasharray: 628; stroke-dashoffset: 0; /* 2*PI*100 */
+  filter: drop-shadow(0 0 5px rgba(0,198,251,0.5)); /* 發光感 */
 }
 
-/* 拖曳手把 */
+/* 拖曳手把 (白點) */
 .ring-handle {
-  position: absolute; top: 0; left: 0;
-  width: 24px; height: 24px;
+  position: absolute; 
+  top: 50%; left: 50%; /* 初始中心點 */
+  width: 28px; height: 28px;
   background: #fff; border-radius: 50%;
   box-shadow: 0 2px 10px rgba(0,0,0,0.3);
   cursor: grab; pointer-events: none; /* JS控制位置 */
+  /* 初始不偏移，JS 會設定 transform */
+  transform: translate(-50%, -50%); 
+  z-index: 20;
 }
+
+/* 互動蓋板 (透明，負責接收滑鼠事件) */
+.ring-overlay {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  border-radius: 50%;
+  cursor: grab; z-index: 10;
+}
+.ring-overlay:active { cursor: grabbing; }
 
 .time-display {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  text-align: center;
+  text-align: center; pointer-events: none;
 }
 #timeLeft { font-size: 36px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .time-label { font-size: 14px; opacity: 0.7; }
 
 .pomo-controls {
-  display: flex; gap: 10px; margin-top: 15px; justify-content: center;
+  display: flex; gap: 15px; margin-top: 25px; justify-content: center; width: 100%;
 }
 
 /* =======================
@@ -201,17 +240,17 @@ body.hover-active #customCursor {
    ======================= */
 #langFab {
   position: fixed; bottom: 30px; right: 30px;
-  width: 50px; height: 50px; border-radius: 50%;
+  width: 60px; height: 60px; border-radius: 50%;
   background: var(--glass-bg); border: 1px solid var(--glass-border);
   backdrop-filter: blur(10px);
   display: flex; align-items: center; justify-content: center;
-  font-size: 24px; box-shadow: var(--glass-shadow);
+  font-size: 28px; box-shadow: var(--glass-shadow);
   z-index: 1000; transition: 0.3s;
 }
 #langFab:hover { transform: scale(1.1) rotate(20deg); }
 
 #langMenu {
-  position: fixed; bottom: 90px; right: 30px;
+  position: fixed; bottom: 100px; right: 30px;
   background: var(--glass-bg); backdrop-filter: blur(20px);
   padding: 10px; border-radius: 16px; border: 1px solid var(--glass-border);
   display: none; flex-direction: column; gap: 5px;
@@ -219,14 +258,14 @@ body.hover-active #customCursor {
 }
 .lang-opt {
   padding: 10px 20px; border-radius: 8px; font-weight: bold;
-  transition: 0.2s; text-align: center;
+  transition: 0.2s; text-align: center; color: var(--text-color);
 }
 .lang-opt:hover { background: rgba(255,255,255,0.2); }
 
 /* Responsive */
 @media (max-width: 900px) {
   .container { grid-template-columns: 1fr; }
-  #cursor { display: none; } /* 手機隱藏自訂游標 */
+  #customCursor { display: none; } /* 手機隱藏自訂游標 */
   * { cursor: auto; }
 }
 </style>
@@ -235,14 +274,14 @@ body.hover-active #customCursor {
 
 <div id="customCursor"></div>
 
-<div id="langFab">🌐</div>
+<div id="langFab" class="interactive">🌐</div>
 <div id="langMenu">
-  <div class="lang-opt" data-lang="zh-TW">繁體中文</div>
-  <div class="lang-opt" data-lang="en">English</div>
-  <div class="lang-opt" data-lang="ja">日本語</div>
-  <div class="lang-opt" data-lang="ko">한국어</div>
-  <div class="lang-opt" data-lang="zh-CN">简体中文</div>
-  <div class="lang-opt" data-lang="fr">Français</div>
+  <div class="lang-opt interactive" data-lang="zh-TW">繁體中文</div>
+  <div class="lang-opt interactive" data-lang="en">English</div>
+  <div class="lang-opt interactive" data-lang="ja">日本語</div>
+  <div class="lang-opt interactive" data-lang="ko">한국어</div>
+  <div class="lang-opt interactive" data-lang="zh-CN">简体中文</div>
+  <div class="lang-opt interactive" data-lang="fr">Français</div>
 </div>
 
 <div class="container">
@@ -251,9 +290,9 @@ body.hover-active #customCursor {
     <div style="display:flex; justify-content:space-between; align-items:flex-start;">
       <div>
         <h1 data-i18n="title">📚 雙字典批次查詢</h1>
-        <div class="subtitle" data-i18n="subtitle">輸入單字，一鍵開啟全部分頁</div>
+        <div class="subtitle" data-i18n="subtitle">輸入單字，一鍵開啟所有解釋</div>
       </div>
-      <button class="search-button" id="themeToggle" style="padding:10px 15px; border-radius:50%;">🌙</button>
+      <button class="search-button interactive" id="themeToggle" style="padding:10px 15px; border-radius:50%;">🌙</button>
     </div>
 
     <div class="warning-text" data-i18n="warning">⚠️ 若按鈕無反應，請嘗試「硬重新整理」(Ctrl/Cmd + Shift + R)</div>
@@ -282,27 +321,31 @@ body.hover-active #customCursor {
       <div id="curLangDisplay" style="font-size: 0.9em; opacity: 0.7;">ZH-TW</div>
     </div>
 
-    <div class="glass-card pomo-container interactive-zone">
-      <svg class="ring-svg" viewBox="0 0 220 220">
-        <defs>
-          <linearGradient id="gradientStroke" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#4facfe" />
-            <stop offset="100%" stop-color="#00f2fe" />
-          </linearGradient>
-        </defs>
-        <circle class="ring-track" cx="110" cy="110" r="100"></circle>
-        <circle class="ring-progress" id="ringProgress" cx="110" cy="110" r="100"></circle>
-      </svg>
-      <div class="ring-handle" id="ringHandle"></div>
-      
-      <div class="time-display">
-        <div id="timeLeft">30:00</div>
-        <div class="time-label" data-i18n="dragTip">拖曳調整</div>
+    <div class="glass-card">
+      <div class="pomo-container">
+        <svg class="ring-svg" viewBox="0 0 220 220">
+          <defs>
+            <linearGradient id="gradientStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#00c6fb" />
+              <stop offset="100%" stop-color="#005bea" />
+            </linearGradient>
+          </defs>
+          <circle class="ring-track" cx="110" cy="110" r="100"></circle>
+          <circle class="ring-progress" id="ringProgress" cx="110" cy="110" r="100"></circle>
+        </svg>
+        
+        <div class="ring-overlay" id="ringOverlay"></div>
+        <div class="ring-handle" id="ringHandle"></div>
+        
+        <div class="time-display">
+          <div id="timeLeft">30:00</div>
+          <div class="time-label" data-i18n="dragTip">拖曳調整</div>
+        </div>
       </div>
 
       <div class="pomo-controls">
-        <button class="search-button" id="startBtn" data-i18n="start">開始</button>
-        <button class="search-button" id="resetBtn" data-i18n="reset">重置</button>
+        <button class="search-button interactive" id="startBtn" data-i18n="start">開始</button>
+        <button class="search-button interactive" id="resetBtn" data-i18n="reset">重置</button>
       </div>
     </div>
 
@@ -311,7 +354,7 @@ body.hover-active #customCursor {
 
 <script>
 // ===================================
-// 1. Cursor Logic (iPadOS Magnetic)
+// 1. Cursor Logic (高速 + 磁吸)
 // ===================================
 const cursor = document.getElementById('customCursor');
 let mouseX = 0, mouseY = 0;
@@ -327,13 +370,13 @@ document.addEventListener('mousemove', (e) => {
   }
 });
 
-// Smooth Cursor Animation
 function animateCursor() {
-  const dt = 0.15; // Lag factor
+  // 1. 速度調整：0.4 (非常跟手)
+  const dt = 0.4; 
   cursorX += (mouseX - cursorX) * dt;
   cursorY += (mouseY - cursorY) * dt;
   
-  // Normal state
+  // Normal state positioning
   if (!document.body.classList.contains('hover-active')) {
     cursor.style.left = cursorX + 'px';
     cursor.style.top = cursorY + 'px';
@@ -343,15 +386,15 @@ function animateCursor() {
 }
 animateCursor();
 
-// Magnetic Effect on Buttons
-const interactives = document.querySelectorAll('.interactive, .lang-opt, #langFab, #themeToggle');
+// Magnetic Effect
+const interactives = document.querySelectorAll('.interactive');
 
 interactives.forEach(el => {
   el.addEventListener('mouseenter', () => {
     document.body.classList.add('hover-active');
     const rect = el.getBoundingClientRect();
     
-    // Expand cursor to wrap element
+    // Morph cursor to button shape
     cursor.style.width = (rect.width + 10) + 'px';
     cursor.style.height = (rect.height + 10) + 'px';
     cursor.style.borderRadius = getComputedStyle(el).borderRadius;
@@ -361,19 +404,19 @@ interactives.forEach(el => {
   
   el.addEventListener('mouseleave', () => {
     document.body.classList.remove('hover-active');
+    // Reset shape
     cursor.style.width = 'var(--cursor-size)';
     cursor.style.height = 'var(--cursor-size)';
     cursor.style.borderRadius = '50%';
   });
   
-  // Magnetic Pull
   el.addEventListener('mousemove', (e) => {
     const rect = el.getBoundingClientRect();
     const centerX = rect.left + rect.width/2;
     const centerY = rect.top + rect.height/2;
     
-    const moveX = (e.clientX - centerX) * 0.3; // Strength
-    const moveY = (e.clientY - centerY) * 0.3;
+    const moveX = (e.clientX - centerX) * 0.2; 
+    const moveY = (e.clientY - centerY) * 0.2;
     
     el.style.transform = `translate(${moveX}px, ${moveY}px)`;
   });
@@ -427,9 +470,10 @@ setInterval(() => {
 }, 1000);
 
 // ===================================
-// 4. Pomodoro Logic (Fixed Dragging)
+// 4. Pomodoro Logic (Fixed Drag & White Dot)
 // ===================================
 const ringProgress = document.getElementById('ringProgress');
+const ringOverlay = document.getElementById('ringOverlay');
 const ringHandle = document.getElementById('ringHandle');
 const timeText = document.getElementById('timeLeft');
 const startBtn = document.getElementById('startBtn');
@@ -441,30 +485,20 @@ let timeLeft = 1800;
 let timerId = null;
 let isDragging = false;
 const RADIUS = 100;
-const CENTER = 110;
+const CENTER = 120; // 容器寬度 240/2 = 120
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-// Update UI
 function updateRing(seconds) {
   const ratio = seconds / 10800; // Max 3 hours
   const offset = CIRCUMFERENCE - (ratio * CIRCUMFERENCE);
   ringProgress.style.strokeDashoffset = offset;
   
-  // Calculate Handle Position
+  // Calculate Handle Position (死死吸附軌道)
   const angleDeg = ratio * 360;
   const angleRad = (angleDeg - 90) * (Math.PI / 180);
   const hX = CENTER + RADIUS * Math.cos(angleRad);
   const hY = CENTER + RADIUS * Math.sin(angleRad);
   
-  // Position handle relative to container (240x240 svg)
-  // Need to offset by handle size (24px/2 = 12)
-  // SVG scaled to container size... using CSS percentages is safer for overlay
-  // But here we can just use pixel mapping if size is fixed.
-  // Container is flex centered? No, inside relative wrapper.
-  // Wrapper 240px? No 220px in CSS? Let's fix map.
-  
-  // Re-mapping to CSS container (220px)
-  const scale = 220 / 220; // 1:1 if SVG viewBox matches
   ringHandle.style.left = `${hX}px`;
   ringHandle.style.top = `${hY}px`;
   
@@ -473,29 +507,24 @@ function updateRing(seconds) {
   timeText.textContent = `${m}:${s}`;
 }
 
-// Drag Event
-const pomoContainer = document.querySelector('.pomo-container');
-
-pomoContainer.addEventListener('mousedown', (e) => {
-  // Only start drag if clicking near ring/handle area roughly
-  isDragging = true;
-  handleDrag(e);
-});
-
-document.addEventListener('mouseup', () => { isDragging = false; });
-
-function handleDrag(e) {
-  if (timerId) clearInterval(timerId); // Stop timer on drag
-  startBtn.textContent = STRINGS[currLang].start;
-  
-  const rect = svg.getBoundingClientRect();
+// Drag Logic
+function getAngle(e) {
+  const rect = ringOverlay.getBoundingClientRect();
   const x = e.clientX - rect.left - rect.width/2;
   const y = e.clientY - rect.top - rect.height/2;
-  
   let angle = Math.atan2(y, x) * (180 / Math.PI) + 90;
-  if (angle < 0) angle += 360;
+  if(angle < 0) angle += 360;
+  return angle;
+}
+
+ringOverlay.addEventListener('mousedown', () => isDragging = true);
+document.addEventListener('mouseup', () => isDragging = false);
+
+function handleDrag(e) {
+  if (timerId) clearInterval(timerId); 
+  startBtn.textContent = STRINGS[currLang].start;
   
-  // Map angle to time (360 deg = 10800 sec)
+  const angle = getAngle(e);
   let sec = Math.round((angle / 360) * 10800 / 10) * 10;
   if (sec < 10) sec = 10;
   
@@ -537,13 +566,12 @@ resetBtn.addEventListener('click', () => {
 // Init Ring
 updateRing(1800);
 
-
 // ===================================
 // 5. Localization System
 // ===================================
 let currLang = "zh-TW";
 const STRINGS = {
-  "zh-TW": { title: "📚 雙字典批次查詢", subtitle: "輸入單字，一鍵開啟全部分頁", warning: "⚠️ 若按鈕無反應，請嘗試「硬重新整理」", cambridge: "劍橋詞典", dreye: "譯典通", usage: "🎯 使用說明：", tip1: "支援多行輸入，紫色按鈕可一鍵全開。", tip2: "拖曳右側圓環可設定番茄鐘時間。", dragTip: "拖曳調整", start: "開始", pause: "暫停", reset: "重置" },
+  "zh-TW": { title: "📚 雙字典批次查詢", subtitle: "輸入單字，一鍵開啟所有解釋", warning: "⚠️ 若按鈕無反應，請嘗試「硬重新整理」", cambridge: "劍橋詞典", dreye: "譯典通", usage: "🎯 使用說明：", tip1: "支援多行輸入，紫色按鈕可一鍵全開。", tip2: "拖曳右側圓環可設定番茄鐘時間。", dragTip: "拖曳調整", start: "開始", pause: "暫停", reset: "重置" },
   "en": { title: "📚 Batch Dictionary", subtitle: "One click to open all tabs", warning: "⚠️ If failed, try Hard Refresh (Ctrl+Shift+R)", cambridge: "Cambridge", dreye: "Dr.eye", usage: "🎯 Usage:", tip1: "Multi-line supported. Purple button opens all.", tip2: "Drag ring to set timer.", dragTip: "Drag to set", start: "Start", pause: "Pause", reset: "Reset" },
   "ja": { title: "📚 辞書一括検索", subtitle: "ワンクリックですべて開く", warning: "⚠️ 反応がない場合はハードリロードしてください", cambridge: "ケンブリッジ", dreye: "Dr.eye", usage: "🎯 使い方：", tip1: "複数行対応。紫ボタンで一括表示。", tip2: "リングをドラッグしてタイマー設定。", dragTip: "ドラッグ設定", start: "開始", pause: "一時停止", reset: "リセット" },
   "ko": { title: "📚 사전 일괄 검색", subtitle: "한 번의 클릭으로 모든 탭 열기", warning: "⚠️ 반응이 없으면 강력 새로고침 하세요", cambridge: "캠브리지", dreye: "Dr.eye", usage: "🎯 사용법:", tip1: "여러 줄 지원. 보라색 버튼은 모두 엽니다.", tip2: "링을 드래그하여 타이머 설정.", dragTip: "드래그 설정", start: "시작", pause: "일시정지", reset: "초기화" },
@@ -551,13 +579,12 @@ const STRINGS = {
   "fr": { title: "📚 Recherche Dico", subtitle: "Un clic pour tout ouvrir", warning: "⚠️ Si bloqué, essayez Ctrl+Shift+R", cambridge: "Cambridge", dreye: "Dr.eye", usage: "🎯 Emploi:", tip1: "Multiligne OK. Bouton violet ouvre tout.", tip2: "Glisser l'anneau pour le minuteur.", dragTip: "Glisser", start: "Démarrer", pause: "Pause", reset: "Réinitialiser" }
 };
 
-// Lang Menu
-const langFab = document.getElementById('langFab');
 const langMenu = document.getElementById('langMenu');
+const langFab = document.getElementById('langFab');
 
 langFab.addEventListener('click', (e) => {
   e.stopPropagation();
-  langMenu.style.display = (langMenu.style.display === 'flex') ? 'none' : 'flex';
+  langMenu.style.display = langMenu.style.display === 'flex' ? 'none' : 'flex';
 });
 document.addEventListener('click', () => langMenu.style.display = 'none');
 
@@ -582,11 +609,8 @@ function updateLang() {
   
   if(!timerId) startBtn.textContent = s.start;
   else startBtn.textContent = s.pause;
-  
   resetBtn.textContent = s.reset;
-  document.getElementById('curLangDisplay').textContent = currLang.toUpperCase();
 }
-
 </script>
 </body>
 </html>
