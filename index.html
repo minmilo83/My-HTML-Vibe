@@ -3,73 +3,68 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-<title>雙字典批次查詢</title>
+<title>雙字典批次查詢 V35.0</title>
 
 <style>
 /* =======================
-   1. Design Tokens (變數設定 - 極致立體版)
+   1. Design Tokens (變數設定)
    ======================= */
 :root {
   /* --- 淺色模式 (Light Mode) --- */
-  --bg-gradient: linear-gradient(135deg, #eef2f3 0%, #8e9eab 100%);
+  --bg-gradient: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%);
   --text-color: #2d3436;
   
-  /* 玻璃質感：更通透 (opacity 降低)，更立體 (shadow 增強) */
-  --glass-bg: rgba(255, 255, 255, 0.45); /* 更透明 */
-  --glass-border: rgba(255, 255, 255, 0.6);
-  /* 核心立體感：頂部高光 + 底部陰影 + 內部厚度感 */
-  --glass-thickness: 
-    inset 1px 1px 2px rgba(255, 255, 255, 0.9), 
-    inset -1px -1px 2px rgba(174, 174, 192, 0.2);
-  --glass-shadow: 
-    10px 10px 20px rgba(174, 174, 192, 0.2), 
-    -10px -10px 20px rgba(255, 255, 255, 0.8);
+  /* 玻璃質感 */
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-thickness: inset 0 1px 2px rgba(255, 255, 255, 0.95), inset 0 -1px 2px rgba(0, 0, 0, 0.03);
+  --glass-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 5px 15px rgba(0,0,0,0.05);
   
-  /* 按鈕浮雕 (Light) - 像浮起來的水滴 */
-  --btn-bg: rgba(255, 255, 255, 0.25);
-  --btn-shadow: 
-    6px 6px 12px rgba(163, 177, 198, 0.3), 
-    -6px -6px 12px rgba(255, 255, 255, 0.8),
-    inset 2px 2px 4px rgba(255, 255, 255, 0.5),
-    inset -2px -2px 4px rgba(0, 0, 0, 0.05);
-  --btn-hover-transform: translateY(-4px) scale(1.02);
+  /* 按鈕 */
+  --btn-bg: rgba(255, 255, 255, 0.5);
+  --btn-shadow: 0 8px 20px rgba(180, 190, 200, 0.2), inset 0 1px 1px rgba(255,255,255,1);
   
-  /* 游標 (Light) - 極致透明水珠 */
-  --cursor-size: 50px;
-  --cursor-bg: rgba(255, 255, 255, 0.05); /* 幾乎完全透明 */
-  --cursor-border: rgba(255, 255, 255, 0.4);
-  --cursor-shadow: 
-    0 0 0 1px rgba(255, 255, 255, 0.1),
-    inset 0 0 10px rgba(255, 255, 255, 0.5), /* 內部反光 */
-    0 8px 16px rgba(0, 0, 0, 0.1); /* 投影 */
+  /* 💧 全域水滴游標 (Light) */
+  --cursor-size: 60px;
+  /* 核心：高光反射漸層 + 陰影模擬折射 */
+  --cursor-bg: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.1) 20%, rgba(255, 255, 255, 0.05) 50%, transparent 80%);
+  --cursor-filter: blur(0px); /* 保持清晰 */
+  --cursor-backdrop: blur(4px) brightness(1.2) saturate(1.2); /* 下方文字變形與增亮 */
+  --cursor-border: 1px solid rgba(255, 255, 255, 0.5);
+  --cursor-box-shadow: 
+      inset 0 0 10px rgba(255, 255, 255, 0.8), /* 內部光暈 */
+      0 10px 20px rgba(0, 0, 0, 0.15), /* 投影 */
+      0 0 0 1px rgba(255, 255, 255, 0.4); /* 外描邊 */
+      
+  /* 翻頁鐘顏色 (Light) */
+  --flip-bg: #333;
+  --flip-text: #fff;
 }
 
 [data-theme="dark"] {
   /* --- 深色模式 --- */
   --bg-gradient: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-  --text-color: #e0f7fa; /* 亮白文字 */
+  --text-color: #e0f7fa;
   
-  /* 玻璃質感 (Dark) */
-  --glass-bg: rgba(0, 0, 0, 0.25); /* 深色且通透 */
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-thickness: 
-    inset 1px 1px 1px rgba(255, 255, 255, 0.15), 
-    inset -1px -1px 10px rgba(0, 0, 0, 0.5);
-  --glass-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+  --glass-bg: rgba(20, 20, 30, 0.4);
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --glass-thickness: inset 0 1px 1px rgba(255, 255, 255, 0.2), inset 0 -1px 10px rgba(0,0,0,0.3);
+  --glass-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
   
-  /* 按鈕浮雕 (Dark) - 螢光感 */
   --btn-bg: rgba(255, 255, 255, 0.05);
-  --btn-shadow: 
-    5px 5px 15px rgba(0, 0, 0, 0.5), 
-    -1px -1px 5px rgba(255, 255, 255, 0.1),
-    inset 1px 1px 2px rgba(255, 255, 255, 0.1);
+  --btn-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.2);
   
-  /* 游標 (Dark) */
-  --cursor-bg: rgba(255, 255, 255, 0.02);
-  --cursor-border: rgba(255, 255, 255, 0.2);
-  --cursor-shadow: 
-    0 0 15px rgba(255, 255, 255, 0.1), 
-    inset 0 0 8px rgba(255, 255, 255, 0.1);
+  /* 💧 全域水滴游標 (Dark) */
+  --cursor-bg: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.1) 15%, transparent 60%);
+  --cursor-backdrop: blur(4px) brightness(1.3);
+  --cursor-border: 1px solid rgba(255, 255, 255, 0.2);
+  --cursor-box-shadow: 
+      inset 0 0 15px rgba(255, 255, 255, 0.1),
+      0 0 20px rgba(255, 255, 255, 0.2);
+
+  /* 翻頁鐘顏色 (Dark) */
+  --flip-bg: #e0f7fa;
+  --flip-text: #0f2027;
 }
 
 /* =======================
@@ -93,14 +88,18 @@ body {
   width: 100%; max-width: 1100px;
 }
 
-/* 💎 液態玻璃通用卡片 (更立體) */
+/* 💎 液態玻璃通用卡片 */
 .glass-card {
   padding: 30px; border-radius: 32px;
   background: var(--glass-bg);
-  backdrop-filter: blur(30px) saturate(120%); -webkit-backdrop-filter: blur(30px) saturate(120%);
+  backdrop-filter: blur(30px) saturate(120%);
+  -webkit-backdrop-filter: blur(30px) saturate(120%);
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow), var(--glass-thickness); 
   transition: all 0.3s ease;
+  
+  /* FIX 2: 讓內部元素可以絕對置中 */
+  display: flex; flex-direction: column; 
 }
 
 h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; }
@@ -112,57 +111,66 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; }
 #wordInput {
   width: 100%; min-height: 180px; padding: 20px;
   border-radius: 24px; border: 1px solid var(--glass-border);
-  background: rgba(255,255,255,0.1); /* 極淡 */
+  background: rgba(255,255,255,0.15); 
   color: var(--text-color); font-size: 18px; line-height: 1.6;
   outline: none; transition: 0.3s;
-  box-shadow: inset 2px 2px 10px rgba(0,0,0,0.05); /* 內凹 */
+  box-shadow: inset 2px 2px 10px rgba(0,0,0,0.05); 
   overflow: hidden; 
 }
 #wordInput:focus {
-  background: rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.3);
   box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05), 0 0 0 1px var(--text-color);
 }
 
 /* =======================
-   3. Buttons (極致浮雕 & Q彈)
+   3. Buttons & Mobile Animation
    ======================= */
 .button-group { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 25px; }
 
 .search-button {
   padding: 14px 30px;
   border-radius: 50px;
-  border: 1px solid rgba(255,255,255,0.3); /* 微弱邊框 */
+  border: 1px solid rgba(255,255,255,0.4);
   background: var(--btn-bg);
   box-shadow: var(--btn-shadow);
   color: var(--text-color);
   font-weight: 600; font-size: 16px;
   backdrop-filter: blur(15px);
-  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); 
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
   position: relative; overflow: hidden;
 }
 
-/* Hover 浮起 */
-.search-button:hover {
-  transform: var(--btn-hover-transform);
-  box-shadow: 0 15px 35px rgba(0,0,0,0.15), inset 0 0 20px rgba(255,255,255,0.6); /* 內部發光增強 */
-  border-color: rgba(255,255,255,0.8);
+@media (min-width: 769px) {
+  .search-button:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15), inset 0 0 20px rgba(255,255,255,0.6);
+    border-color: rgba(255,255,255,0.9);
+  }
 }
 
-/* Active 按壓 */
-.search-button:active {
-  transform: scale(0.96);
-  box-shadow: inset 3px 3px 6px rgba(0,0,0,0.1);
+/* FIX 1: Mobile Q-Elastic Pop Animation */
+@keyframes popIn {
+  0% { transform: scale(1); }
+  40% { transform: scale(0.92); }
+  70% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
 
-/* 圓形主題切換按鈕 */
+@media (max-width: 768px) {
+  .search-button:active, #themeToggle:active, #langFab:active, .lang-opt:active {
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    background: rgba(255,255,255,0.6);
+  }
+  .search-button { padding: 12px 24px; font-size: 15px; }
+  .container { grid-template-columns: 1fr; padding-bottom: 80px; }
+  #customCursor { display: none; }
+  * { cursor: auto; }
+}
+
 #themeToggle {
-    width: 48px; height: 48px; padding: 0; 
-    border-radius: 50%; 
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px;
+    width: 48px; height: 48px; padding: 0; border-radius: 50%; 
+    display: flex; align-items: center; justify-content: center; font-size: 22px;
 }
-
-/* 紫色圓形按鈕 */
 #allButton {
   width: 64px; height: 64px; padding: 0;
   border-radius: 50%; display: flex; align-items: center; justify-content: center;
@@ -177,7 +185,7 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; }
 }
 
 /* =======================
-   4. Custom Cursor (極致透明)
+   4. Custom Cursor (FIX: Water Drop Global)
    ======================= */
 #customCursor {
   position: fixed; top: 0; left: 0; z-index: 9999;
@@ -186,36 +194,108 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; }
   transform: translate(-50%, -50%);
   transition: width 0.2s, height 0.2s, border-radius 0.2s; 
   
-  /* 💎 水晶質感 */
+  /* 💧 極致水滴質感：透明但可見 */
   background: var(--cursor-bg);
-  backdrop-filter: blur(3px); /* 輕微模糊背景 */
-  border: 1px solid var(--cursor-border);
+  backdrop-filter: var(--cursor-backdrop); /* 透視變形 */
+  -webkit-backdrop-filter: var(--cursor-backdrop);
+  border: var(--cursor-border);
   border-radius: 50%;
-  box-shadow: var(--cursor-shadow);
+  box-shadow: var(--cursor-box-shadow);
 }
 
-/* 吸附狀態 */
+/* 吸附狀態：變形覆蓋按鈕 */
 body.hover-active #customCursor {
   background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255,255,255,0.3);
-  backdrop-filter: none; 
+  border-color: rgba(255,255,255,0.4);
+  backdrop-filter: none;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.5);
 }
 
 /* =======================
-   5. Pomodoro Ring 
+   5. Clock Widget (FIX: Flip Animation & Alignment)
+   ======================= */
+.clock-container {
+  display: flex; justify-content: center; align-items: center;
+  min-height: 80px; cursor: pointer; user-select: none;
+  position: relative; width: 100%;
+}
+
+/* Style 1: Digital */
+.clock-digital { font-size: 2.5em; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* Style 2: Analog */
+.clock-analog {
+  width: 90px; height: 90px; border-radius: 50%;
+  border: 3px solid var(--text-color); position: relative;
+  background: rgba(255,255,255,0.1);
+  box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
+}
+.hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom center; background: var(--text-color); border-radius: 2px; }
+.hand.hour { width: 4px; height: 25px; transform: translateX(-50%); }
+.hand.min { width: 3px; height: 35px; transform: translateX(-50%); }
+.hand.sec { width: 2px; height: 40px; background: #ff6b6b; transform: translateX(-50%); }
+.center-dot { position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; background: var(--text-color); border-radius: 50%; transform: translate(-50%, -50%); }
+
+/* Style 3: Animated Flip Clock (FIX 1) */
+.clock-flip {
+  display: flex; gap: 8px; font-family: 'Courier New', monospace; font-weight: bold;
+}
+.flip-unit {
+  position: relative; width: 44px; height: 64px;
+  background: var(--flip-bg); color: var(--flip-text);
+  border-radius: 6px; font-size: 36px; line-height: 64px; text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  perspective: 200px;
+}
+.flip-top, .flip-bottom, .flip-leaf-front, .flip-leaf-back {
+  position: absolute; left: 0; width: 100%; height: 50%;
+  overflow: hidden; background: var(--flip-bg);
+}
+.flip-top, .flip-leaf-front {
+  top: 0; border-radius: 6px 6px 0 0; border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+.flip-bottom, .flip-leaf-back {
+  bottom: 0; border-radius: 0 0 6px 6px; line-height: 0;
+}
+.flip-leaf-front, .flip-leaf-back {
+  z-index: 2; backface-visibility: hidden; transform-style: preserve-3d;
+}
+.flip-leaf-back {
+  transform: rotateX(180deg);
+}
+/* Animation Class */
+.flipping .flip-leaf-front {
+  animation: flipDownFront 0.6s ease-in-out forwards;
+}
+.flipping .flip-leaf-back {
+  animation: flipDownBack 0.6s ease-in-out forwards;
+}
+
+@keyframes flipDownFront {
+  0% { transform: rotateX(0deg); }
+  100% { transform: rotateX(-180deg); }
+}
+@keyframes flipDownBack {
+  0% { transform: rotateX(180deg); }
+  100% { transform: rotateX(0deg); }
+}
+
+/* FIX 2: Alignment */
+.clock-hint {
+  font-size: 11px; opacity: 0.5; text-align: center; margin-top: 15px;
+}
+
+/* =======================
+   6. Pomodoro Ring 
    ======================= */
 .pomo-container {
   display: flex; flex-direction: column; align-items: center; position: relative;
   width: 240px; height: 240px; margin: 0 auto;
-  touch-action: none; /* 防止手機瀏覽器預設捲動 */
+  touch-action: none; 
 }
-.ring-svg {
-  width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; 
-}
-.ring-track {
-  stroke: rgba(128,128,128, 0.1); stroke-width: 12; fill: none;
-}
-[data-theme="dark"] .ring-track { stroke: rgba(255,255,255,0.05); }
+.ring-svg { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+.ring-track { stroke: rgba(128,128,128, 0.15); stroke-width: 12; fill: none; }
+[data-theme="dark"] .ring-track { stroke: rgba(255,255,255,0.1); }
 
 .ring-progress {
   fill: none; stroke: url(#gradientStroke); stroke-width: 12; stroke-linecap: round;
@@ -223,19 +303,13 @@ body.hover-active #customCursor {
   filter: drop-shadow(0 0 5px rgba(0,198,251,0.5)); 
 }
 
-/* 拖曳手把 (白點) */
 .ring-handle {
-  position: absolute; 
-  top: 50%; left: 50%; 
-  width: 32px; height: 32px; /* 加大觸控區 */
-  background: #fff; border-radius: 50%;
+  position: absolute; top: 50%; left: 50%; 
+  width: 32px; height: 32px; background: #fff; border-radius: 50%;
   box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-  cursor: grab; pointer-events: none; 
-  transform: translate(-50%, -50%); 
-  z-index: 20;
+  cursor: grab; pointer-events: none; transform: translate(-50%, -50%); z-index: 20;
 }
 
-/* 互動蓋板 */
 .ring-overlay {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   border-radius: 50%; cursor: grab; z-index: 10;
@@ -254,7 +328,7 @@ body.hover-active #customCursor {
 }
 
 /* =======================
-   6. Language Menu 
+   7. Language Menu 
    ======================= */
 #langFab {
   position: fixed; bottom: 30px; right: 30px;
@@ -280,11 +354,10 @@ body.hover-active #customCursor {
 }
 .lang-opt:hover { background: rgba(255,255,255,0.2); }
 
-/* Responsive & Mobile */
 @media (max-width: 900px) {
   .container { grid-template-columns: 1fr; }
-  #customCursor { display: none; } /* 手機隱藏自訂游標 */
-  * { cursor: auto; } /* 恢復原生觸控指標 */
+  #customCursor { display: none; }
+  * { cursor: auto; }
 }
 </style>
 </head>
@@ -334,9 +407,10 @@ body.hover-active #customCursor {
 
   <div style="display:flex; flex-direction: column; gap:30px;">
     
-    <div class="glass-card" style="padding: 20px; text-align:center;">
-      <div id="realTime" style="font-size: 2em; font-weight: 700;">00:00:00</div>
-      <div id="curLangDisplay" style="font-size: 0.9em; opacity: 0.7;">ZH-TW</div>
+    <div class="glass-card" id="clockCard" style="padding: 25px; align-items: center; justify-content: center;">
+      <div class="clock-container">
+        </div>
+      <div class="clock-hint">Click to switch style</div>
     </div>
 
     <div class="glass-card">
@@ -351,7 +425,6 @@ body.hover-active #customCursor {
           <circle class="ring-track" cx="110" cy="110" r="100"></circle>
           <circle class="ring-progress" id="ringProgress" cx="110" cy="110" r="100"></circle>
         </svg>
-        
         <div class="ring-overlay" id="ringOverlay"></div>
         <div class="ring-handle" id="ringHandle"></div>
         
@@ -372,7 +445,7 @@ body.hover-active #customCursor {
 
 <script>
 // ===================================
-// 1. Cursor Logic (高速 + 磁吸 + 持續顯示)
+// 1. Cursor Logic (Fix: Water Drop Global)
 // ===================================
 const cursor = document.getElementById('customCursor');
 let mouseX = 0, mouseY = 0;
@@ -381,19 +454,14 @@ let cursorX = 0, cursorY = 0;
 document.addEventListener('mousemove', (e) => {
   mouseX = e.clientX;
   mouseY = e.clientY;
-  
-  // Pomodoro Dragging (Mouse)
-  if (isDragging) {
-    handleDrag(e);
-  }
+  if (isDragging) handleDrag(e.clientX, e.clientY);
 });
 
 function animateCursor() {
-  const dt = 0.4; // 高速跟隨
+  const dt = 0.4; 
   cursorX += (mouseX - cursorX) * dt;
   cursorY += (mouseY - cursorY) * dt;
   
-  // FIX: 無條件持續更新位置，確保不消失
   cursor.style.left = cursorX + 'px';
   cursor.style.top = cursorY + 'px';
 
@@ -401,15 +469,11 @@ function animateCursor() {
 }
 animateCursor();
 
-// Magnetic Effect
 const interactives = document.querySelectorAll('.interactive');
-
 interactives.forEach(el => {
   el.addEventListener('mouseenter', () => {
     document.body.classList.add('hover-active');
     const rect = el.getBoundingClientRect();
-    
-    // Morph
     cursor.style.width = (rect.width + 12) + 'px';
     cursor.style.height = (rect.height + 12) + 'px';
     cursor.style.borderRadius = getComputedStyle(el).borderRadius;
@@ -417,11 +481,9 @@ interactives.forEach(el => {
   
   el.addEventListener('mouseleave', () => {
     document.body.classList.remove('hover-active');
-    // Reset
     cursor.style.width = 'var(--cursor-size)';
     cursor.style.height = 'var(--cursor-size)';
     cursor.style.borderRadius = '50%';
-    // Reset element pos
     el.style.transform = 'translate(0, 0)';
   });
   
@@ -429,16 +491,103 @@ interactives.forEach(el => {
     const rect = el.getBoundingClientRect();
     const centerX = rect.left + rect.width/2;
     const centerY = rect.top + rect.height/2;
-    
-    const moveX = (e.clientX - centerX) * 0.25; 
-    const moveY = (e.clientY - centerY) * 0.25;
-    
-    el.style.transform = `translate(${moveX}px, ${moveY}px)`;
+    el.style.transform = `translate(${(e.clientX - centerX)*0.25}px, ${(e.clientY - centerY)*0.25}px)`;
   });
 });
 
 // ===================================
-// 2. Dictionary Logic
+// 2. Clock Widget (FIX: 3 Styles + Flip Animation)
+// ===================================
+const clockContainer = document.querySelector('.clock-container');
+let clockMode = 0; // 0: Digital, 1: Analog, 2: Flip
+let prevS = -1, prevM = -1, prevH = -1;
+
+function pad(n) { return n.toString().padStart(2, '0'); }
+
+function renderClock() {
+  const now = new Date();
+  const h = now.getHours();
+  const m = now.getMinutes();
+  const s = now.getSeconds();
+
+  if (clockMode === 0) {
+    // Digital
+    clockContainer.innerHTML = `<div class="clock-digital">${pad(h)}:${pad(m)}:${pad(s)}</div>`;
+  } else if (clockMode === 1) {
+    // Analog
+    const secDeg = (s / 60) * 360;
+    const minDeg = ((m + s/60) / 60) * 360;
+    const hourDeg = ((h % 12 + m/60) / 12) * 360;
+    clockContainer.innerHTML = `
+      <div class="clock-analog">
+        <div class="hand hour" style="transform: translateX(-50%) rotate(${hourDeg}deg)"></div>
+        <div class="hand min" style="transform: translateX(-50%) rotate(${minDeg}deg)"></div>
+        <div class="hand sec" style="transform: translateX(-50%) rotate(${secDeg}deg)"></div>
+        <div class="center-dot"></div>
+      </div>`;
+  } else {
+    // Flip (Animation Check)
+    // Only rebuild DOM if mode just changed, otherwise update existing to support animation
+    if (!clockContainer.querySelector('.clock-flip')) {
+      clockContainer.innerHTML = `
+        <div class="clock-flip">
+          <div class="flip-unit" id="flipH">
+            <div class="flip-top">${pad(h)}</div><div class="flip-bottom">${pad(h)}</div>
+            <div class="flip-leaf-front">${pad(h)}</div><div class="flip-leaf-back">${pad(h)}</div>
+          </div>
+          :
+          <div class="flip-unit" id="flipM">
+            <div class="flip-top">${pad(m)}</div><div class="flip-bottom">${pad(m)}</div>
+            <div class="flip-leaf-front">${pad(m)}</div><div class="flip-leaf-back">${pad(m)}</div>
+          </div>
+          :
+          <div class="flip-unit" id="flipS">
+            <div class="flip-top">${pad(s)}</div><div class="flip-bottom">${pad(s)}</div>
+            <div class="flip-leaf-front">${pad(s)}</div><div class="flip-leaf-back">${pad(s)}</div>
+          </div>
+        </div>`;
+    } else {
+      updateFlipUnit('flipH', h, prevH);
+      updateFlipUnit('flipM', m, prevM);
+      updateFlipUnit('flipS', s, prevS);
+    }
+  }
+  
+  prevH = h; prevM = m; prevS = s;
+}
+
+function updateFlipUnit(id, val, prevVal) {
+  if (val === prevVal) return;
+  const el = document.getElementById(id);
+  const current = pad(val);
+  const prev = pad(prevVal === -1 ? val : prevVal);
+  
+  // Set values
+  el.querySelector('.flip-top').textContent = current;
+  el.querySelector('.flip-bottom').textContent = current;
+  el.querySelector('.flip-leaf-front').textContent = prev; // Old value flipping down
+  el.querySelector('.flip-leaf-back').textContent = current; // New value appearing
+  
+  // Trigger Reflow to restart animation
+  el.classList.remove('flipping');
+  void el.offsetWidth;
+  el.classList.add('flipping');
+}
+
+document.getElementById('clockCard').addEventListener('click', () => {
+  clockMode = (clockMode + 1) % 3;
+  // Clear prev values to force render
+  prevS = -1; 
+  // Reset container for fresh render
+  clockContainer.innerHTML = '';
+  renderClock();
+});
+
+setInterval(renderClock, 1000);
+renderClock();
+
+// ===================================
+// 3. Dictionary & Theme
 // ===================================
 const DICT_URLS = [
   "https://dictionary.cambridge.org/zht/%E8%A9%9E%E5%85%B8/%E8%8B%B1%E8%AA%9E-%E6%BC%A2%E8%AA%9E-%E7%B9%81%E9%AB%94/",
@@ -449,7 +598,6 @@ function searchDict(index) {
   const input = document.getElementById('wordInput').value.trim();
   if(!input) return;
   const list = input.split('\n').map(w => w.trim()).filter(w => w);
-  
   list.forEach((w, i) => {
     setTimeout(() => {
       let url = "";
@@ -465,9 +613,6 @@ function searchAll() {
   setTimeout(() => searchDict(1), 200);
 }
 
-// ===================================
-// 3. Theme & Clock
-// ===================================
 const themeBtn = document.getElementById('themeToggle');
 themeBtn.addEventListener('click', () => {
   const body = document.body;
@@ -476,12 +621,8 @@ themeBtn.addEventListener('click', () => {
   themeBtn.textContent = isDark ? '🌙' : '☀️';
 });
 
-setInterval(() => {
-  document.getElementById('realTime').textContent = new Date().toLocaleTimeString();
-}, 1000);
-
 // ===================================
-// 4. Pomodoro Logic (Mobile Touch + Fixed Drag)
+// 4. Pomodoro Logic (FIX 4: No Loop + Mobile Touch)
 // ===================================
 const ringProgress = document.getElementById('ringProgress');
 const ringOverlay = document.getElementById('ringOverlay');
@@ -495,7 +636,7 @@ let timeLeft = 1800;
 let timerId = null;
 let isDragging = false;
 const RADIUS = 100;
-const CENTER = 120; // 容器寬度 240/2
+const CENTER = 120;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 function updateRing(seconds) {
@@ -503,7 +644,6 @@ function updateRing(seconds) {
   const offset = CIRCUMFERENCE - (ratio * CIRCUMFERENCE);
   ringProgress.style.strokeDashoffset = offset;
   
-  // Handle Position
   const angleDeg = ratio * 360;
   const angleRad = (angleDeg - 90) * (Math.PI / 180);
   const hX = CENTER + RADIUS * Math.cos(angleRad);
@@ -517,7 +657,6 @@ function updateRing(seconds) {
   timeText.textContent = `${m}:${s}`;
 }
 
-// --- Drag Logic (Mouse + Touch) ---
 function getAngle(clientX, clientY) {
   const rect = ringOverlay.getBoundingClientRect();
   const x = clientX - rect.left - rect.width/2;
@@ -527,11 +666,23 @@ function getAngle(clientX, clientY) {
   return angle;
 }
 
-function handleInteraction(clientX, clientY) {
+let lastAngle = 0; 
+
+function handleDrag(clientX, clientY) {
   if (timerId) clearInterval(timerId); 
   startBtn.textContent = STRINGS[currLang].start;
   
   const angle = getAngle(clientX, clientY);
+  
+  // FIX 4: Prevent loop
+  if (lastAngle > 300 && angle < 60) {
+    timeLeft = 10800; updateRing(10800); return;
+  }
+  if (lastAngle < 60 && angle > 300) {
+    timeLeft = 10; updateRing(10); return;
+  }
+  
+  lastAngle = angle;
   let sec = Math.round((angle / 360) * 10800 / 10) * 10;
   if (sec < 10) sec = 10;
   
@@ -540,28 +691,24 @@ function handleInteraction(clientX, clientY) {
   updateRing(sec);
 }
 
-// Mouse Events
-ringOverlay.addEventListener('mousedown', (e) => { isDragging = true; handleInteraction(e.clientX, e.clientY); });
+// Mouse
+ringOverlay.addEventListener('mousedown', (e) => { isDragging = true; lastAngle = getAngle(e.clientX, e.clientY); handleDrag(e.clientX, e.clientY); });
 document.addEventListener('mouseup', () => { isDragging = false; });
 
-function handleDrag(e) { handleInteraction(e.clientX, e.clientY); }
-
-// Touch Events (Mobile)
+// Touch
 ringOverlay.addEventListener('touchstart', (e) => {
-  e.preventDefault(); // Prevent scroll
-  isDragging = true;
-  handleInteraction(e.touches[0].clientX, e.touches[0].clientY);
+  e.preventDefault(); isDragging = true; 
+  lastAngle = getAngle(e.touches[0].clientX, e.touches[0].clientY);
+  handleDrag(e.touches[0].clientX, e.touches[0].clientY);
 }, {passive: false});
 
 ringOverlay.addEventListener('touchmove', (e) => {
   e.preventDefault();
-  if(isDragging) handleInteraction(e.touches[0].clientX, e.touches[0].clientY);
+  if(isDragging) handleDrag(e.touches[0].clientX, e.touches[0].clientY);
 }, {passive: false});
 
 document.addEventListener('touchend', () => { isDragging = false; });
 
-
-// Timer Controls
 startBtn.addEventListener('click', () => {
   if (timerId) {
     clearInterval(timerId);
@@ -591,20 +738,19 @@ resetBtn.addEventListener('click', () => {
   updateRing(timeLeft);
 });
 
-// Init Ring
 updateRing(1800);
 
 // ===================================
-// 5. Localization System
+// 6. Localization System 
 // ===================================
 let currLang = "zh-TW";
 const STRINGS = {
-  "zh-TW": { title: "雙字典批次查詢", subtitle: "輸入單字，一鍵開啟所有解釋", warning: "⚠️ 若按鈕無反應，請嘗試「硬重新整理」", cambridge: "劍橋詞典", dreye: "譯典通", usage: "🎯 使用說明：", tip1: "支援多行輸入，紫色按鈕可一鍵全開。", tip2: "拖曳右側圓環可設定番茄鐘時間。", dragTip: "拖曳調整", start: "開始", pause: "暫停", reset: "重置" },
-  "en": { title: "Batch Dictionary", subtitle: "One click to open all tabs", warning: "⚠️ If failed, try Hard Refresh (Ctrl+Shift+R)", cambridge: "Cambridge", dreye: "Dr.eye", usage: "🎯 Usage:", tip1: "Multi-line supported. Purple button opens all.", tip2: "Drag ring to set timer.", dragTip: "Drag to set", start: "Start", pause: "Pause", reset: "Reset" },
-  "ja": { title: "辞書一括検索", subtitle: "ワンクリックですべて開く", warning: "⚠️ 反応がない場合はハードリロードしてください", cambridge: "ケンブリッジ", dreye: "Dr.eye", usage: "🎯 使い方：", tip1: "複数行対応。紫ボタンで一括表示。", tip2: "リングをドラッグしてタイマー設定。", dragTip: "ドラッグ設定", start: "開始", pause: "一時停止", reset: "リセット" },
-  "ko": { title: "사전 일괄 검색", subtitle: "한 번의 클릭으로 모든 탭 열기", warning: "⚠️ 반응이 없으면 강력 새로고침 하세요", cambridge: "캠브리지", dreye: "Dr.eye", usage: "🎯 사용법:", tip1: "여러 줄 지원. 보라색 버튼은 모두 엽니다.", tip2: "링을 드래그하여 타이머 설정.", dragTip: "드래그 설정", start: "시작", pause: "일시정지", reset: "초기화" },
-  "zh-CN": { title: "双词典批量查询", subtitle: "输入单词，一键开启分页", warning: "⚠️ 若无反應，请尝试“硬刷新”", cambridge: "剑桥词典", dreye: "译典通", usage: "🎯 使用说明：", tip1: "支持多行。紫色按钮一键全开。", tip2: "拖拽圆环设置时间。", dragTip: "拖拽调整", start: "开始", pause: "暂停", reset: "重置" },
-  "fr": { title: "Recherche Dico", subtitle: "Un clic pour tout ouvrir", warning: "⚠️ Si bloqué, essayez Ctrl+Shift+R", cambridge: "Cambridge", dreye: "Dr.eye", usage: "🎯 Emploi:", tip1: "Multiligne OK. Bouton violet ouvre tout.", tip2: "Glisser l'anneau pour le minuteur.", dragTip: "Glisser", start: "Démarrer", pause: "Pause", reset: "Réinitialiser" }
+  "zh-TW": { title: "雙字典批次查詢", subtitle: "輸入單字，一鍵開啟所有解釋", warning: "⚠️ 若按鈕無反應，請嘗試「硬重新整理」", cambridge: "劍橋詞典", dreye: "譯典通", usage: "🎯 使用說明：", tip1: "支援多行輸入，紫色按鈕可一鍵全開。", tip2: "拖曳右側圓環可設定番茄鐘時間。", tip3: "點擊時鐘可切換顯示樣式。", dragTip: "拖曳調整", start: "開始", pause: "暫停", reset: "重置" },
+  "en": { title: "Batch Dictionary", subtitle: "One click to open all tabs", warning: "⚠️ If failed, try Hard Refresh (Ctrl+Shift+R)", cambridge: "Cambridge", dreye: "Dr.eye", usage: "🎯 Usage:", tip1: "Multi-line supported. Purple button opens all.", tip2: "Drag ring to set timer.", tip3: "Click clock to switch style.", dragTip: "Drag to set", start: "Start", pause: "Pause", reset: "Reset" },
+  "ja": { title: "辞書一括検索", subtitle: "ワンクリックですべて開く", warning: "⚠️ 反応がない場合はハードリロードしてください", cambridge: "ケンブリッジ", dreye: "Dr.eye", usage: "🎯 使い方：", tip1: "複数行対応。紫ボタンで一括表示。", tip2: "リングをドラッグしてタイマー設定。", tip3: "時計をクリックしてスタイル切替。", dragTip: "ドラッグ設定", start: "開始", pause: "一時停止", reset: "リセット" },
+  "ko": { title: "사전 일괄 검색", subtitle: "한 번의 클릭으로 모든 탭 열기", warning: "⚠️ 반응이 없으면 강력 새로고침 하세요", cambridge: "캠브리지", dreye: "Dr.eye", usage: "🎯 사용법:", tip1: "여러 줄 지원. 보라색 버튼은 모두 엽니다.", tip2: "링을 드래그하여 타이머 설정.", tip3: "시계를 클릭하여 스타일 전환。", dragTip: "드래그 설정", start: "시작", pause: "일시정지", reset: "초기화" },
+  "zh-CN": { title: "双词典批量查询", subtitle: "输入单词，一键开启分页", warning: "⚠️ 若无反應，请尝试“硬刷新”", cambridge: "剑桥词典", dreye: "译典通", usage: "🎯 使用说明：", tip1: "支持多行。紫色按钮一键全开。", tip2: "拖拽圆环设置时间。", tip3: "点击时钟可切换显示样式。", dragTip: "拖拽调整", start: "开始", pause: "暂停", reset: "重置" },
+  "fr": { title: "Recherche Dico", subtitle: "Un clic pour tout ouvrir", warning: "⚠️ Si bloqué, essayez Ctrl+Shift+R", cambridge: "Cambridge", dreye: "Dr.eye", usage: "🎯 Emploi:", tip1: "Multiligne OK. Bouton violet ouvre tout.", tip2: "Glisser l'anneau pour le minuteur.", tip3: "Cliquez sur l'horloge pour changer de style.", dragTip: "Glisser", start: "Démarrer", pause: "Pause", reset: "Réinitialiser" }
 };
 
 const langMenu = document.getElementById('langMenu');
@@ -633,6 +779,7 @@ function updateLang() {
   document.querySelector('[data-i18n="usage"]').textContent = s.usage;
   document.querySelector('[data-i18n="tip1"]').textContent = s.tip1;
   document.querySelector('[data-i18n="tip2"]').textContent = s.tip2;
+  document.querySelector('[data-i18n="tip3"]').textContent = s.tip3;
   document.querySelector('[data-i18n="dragTip"]').textContent = s.dragTip;
   
   if(!timerId) startBtn.textContent = s.start;
