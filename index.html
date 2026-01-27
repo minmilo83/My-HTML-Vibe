@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-<title>多功能批次搜尋器</title>
+<title>全能批次搜尋控制台</title>
 
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
@@ -139,6 +139,7 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
   position: relative; overflow: hidden;
 }
 
+/* 舊有的 YouTube 按鈕 */
 .btn-youtube {
   background: linear-gradient(135deg, rgba(255,0,0,0.1) 0%, rgba(255,255,255,0.2) 100%);
   border-color: rgba(255,0,0,0.3);
@@ -146,6 +147,16 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
 .btn-youtube:hover {
   background: linear-gradient(135deg, rgba(255,0,0,0.2) 0%, rgba(255,255,255,0.4) 100%);
   box-shadow: 0 10px 25px rgba(255, 0, 0, 0.2);
+}
+
+/* 新增的 Google / Web 按鈕 */
+.btn-web {
+  background: linear-gradient(135deg, rgba(66, 133, 244, 0.1) 0%, rgba(255,255,255,0.2) 100%);
+  border-color: rgba(66, 133, 244, 0.3);
+}
+.btn-web:hover {
+  background: linear-gradient(135deg, rgba(66, 133, 244, 0.2) 0%, rgba(255,255,255,0.4) 100%);
+  box-shadow: 0 10px 25px rgba(66, 133, 244, 0.25);
 }
 
 @media (min-width: 769px) {
@@ -196,7 +207,6 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
     transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     margin-top: 30px;
     border: none;
-    /* 移除 interactive class，讓卡片本體不觸發液態游標 */
 }
 
 /* Header & Collapsed View */
@@ -427,15 +437,15 @@ body.hover-active #customCursor {
   <div class="glass-card">
     <div style="display:flex; justify-content:space-between; align-items:flex-start;">
       <div>
-        <h1 data-i18n="title">多功能批次搜尋器</h1>
-        <div class="subtitle" data-i18n="subtitle">整合字典、YouTube 與實用工具的控制台</div>
+        <h1 data-i18n="title">全能批次搜尋控制台</h1>
+        <div class="subtitle" data-i18n="subtitle">整合搜尋引擎、字典與實用工具的中心</div>
       </div>
       <button class="search-button interactive" id="themeToggle">🌙</button>
     </div>
 
     <div class="warning-text" data-i18n="warning">⚠️ 若按鈕無反應，請嘗試「硬重新整理」(Ctrl/Cmd + Shift + R)</div>
 
-    <textarea id="wordInput" placeholder="請輸入關鍵字，一行一個。&#10;例如：&#10;Paradigm&#10;Quantum Mechanics&#10;Lo-fi music"></textarea>
+    <textarea id="wordInput" placeholder="請輸入關鍵字或網址，一行一個。&#10;例如：&#10;天氣&#10;www.google.com&#10;https://www.youtube.com"></textarea>
 
     <div class="button-group">
       <button class="search-button interactive" onclick="searchDict(0)" data-i18n="cambridge">劍橋詞典</button>
@@ -443,6 +453,10 @@ body.hover-active #customCursor {
       
       <button class="search-button btn-youtube interactive" onclick="searchYoutube()">
         <i class="ph ph-youtube-logo" style="font-size:1.2em;"></i> YouTube
+      </button>
+
+      <button class="search-button btn-web interactive" onclick="searchWeb()" data-i18n="googleweb">
+         <i class="ph ph-globe" style="font-size:1.2em;"></i> Google / Web
       </button>
 
       <button class="search-button interactive" id="allButton" onclick="searchAll()">🟣</button>
@@ -502,6 +516,7 @@ body.hover-active #customCursor {
       <ul style="margin: 5px 0 0 20px; padding:0;">
         <li data-i18n="tip1">支援多行輸入，紫色按鈕可一鍵全開。</li>
         <li data-i18n="tip2">點擊天氣卡片可展開查看詳細資訊。</li>
+        <li data-i18n="tip3">番茄鐘慢速拖曳可微調時間，快速拖曳可大幅調整。</li>
       </ul>
     </div>
   </div>
@@ -593,7 +608,7 @@ function initInteractive() {
 initInteractive();
 
 // ===================================
-// 2. Search Engine Functions
+// 2. Search Engine Functions (Enhanced)
 // ===================================
 const DICT_URLS = [
   "https://dictionary.cambridge.org/zht/%E8%A9%9E%E5%85%B8/%E8%8B%B1%E8%AA%9E-%E6%BC%A2%E8%AA%9E-%E7%B9%81%E9%AB%94/",
@@ -629,9 +644,31 @@ function searchYoutube() {
     });
 }
 
+// 新增功能：Google / 網頁混合搜尋
+function searchWeb() {
+    const list = getLines();
+    list.forEach((w, i) => {
+        setTimeout(() => {
+            let url = "";
+            // 簡單的正則表達式判斷是否為網址
+            const isUrl = w.match(/^(http|https):\/\//i) || w.match(/^www\./i) || w.includes('.com') || w.includes('.org') || w.includes('.net') || w.includes('.tw');
+            
+            if (isUrl) {
+                // 如果是網址但沒有 http 開頭，自動補上
+                url = w.match(/^(http|https):\/\//i) ? w : 'http://' + w;
+            } else {
+                // 如果不是網址，則使用 Google 搜尋
+                url = "https://www.google.com/search?q=" + encodeURIComponent(w);
+            }
+            window.open(url, '_blank');
+        }, i * 200);
+    });
+}
+
 function searchAll() {
   searchDict(0);
   setTimeout(() => searchDict(1), 300);
+  // 可選擇是否要包含 Google，目前保留為字典整合
 }
 
 // ===================================
@@ -826,7 +863,7 @@ setInterval(fetchWeather, 300000);
 fetchWeather();
 
 // ===================================
-// 5. Pomodoro Logic
+// 5. Pomodoro Logic (Variable Speed)
 // ===================================
 const ringProgress = document.getElementById('ringProgress');
 const ringOverlay = document.getElementById('ringOverlay');
@@ -842,6 +879,10 @@ let isDragging = false;
 const RADIUS = 100;
 const CENTER = 110; 
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+// 新增：用於變速控制的變數
+let currentRotation = (1800 / 10800) * 360; 
+let lastRawAngle = 0;
 
 function updateRing(seconds) {
   const ratio = seconds / 10800; 
@@ -870,9 +911,6 @@ function getAngle(clientX, clientY) {
   return angle;
 }
 
-let currentRotation = (1800 / 10800) * 360; 
-let lastRawAngle = 0;
-
 function startDrag(clientX, clientY) {
   isDragging = true;
   lastRawAngle = getAngle(clientX, clientY);
@@ -884,17 +922,37 @@ function handleDrag(clientX, clientY) {
   
   const rawAngle = getAngle(clientX, clientY);
   let delta = rawAngle - lastRawAngle;
+  
+  // 處理 0/360 度交界處的跳躍
   if (delta < -180) delta += 360;
   if (delta > 180) delta -= 360;
   
-  currentRotation += delta;
+  // === 變速邏輯 (Variable Speed) ===
+  // 如果滑鼠移動的角度變化量(delta)很小，代表使用者在慢慢拖曳 -> 減速 (變成 0.2 倍速)
+  // 如果移動很快，代表在大幅度調整 -> 維持 1.0 倍速
+  let sensitivity = 1.0;
+  if (Math.abs(delta) < 4) { // 門檻值：小於 4 度視為慢速
+      sensitivity = 0.2;     // 減速至 20%，方便微調
+  }
+  
+  currentRotation += delta * sensitivity;
+  
+  // 邊界檢查
   if (currentRotation < 0) currentRotation = 0;
   if (currentRotation > 360) currentRotation = 360;
   
   lastRawAngle = rawAngle;
-  let sec = Math.round((currentRotation / 360) * 10800 / 10) * 10;
-  if (sec < 10) sec = 10;
-  if (sec > 10800) sec = 10800;
+  
+  // 計算秒數
+  let sec = Math.round((currentRotation / 360) * 10800);
+  
+  // 如果是快速移動，稍微吸附到 10 秒整數；如果是慢速，允許 1 秒微調
+  if (sensitivity === 1.0) {
+      sec = Math.round(sec / 10) * 10;
+  }
+  
+  if (sec < 10) sec = 10; // 最小 10 秒
+  if (sec > 10800) sec = 10800; // 最大 3 小時
   
   timeLeft = sec;
   totalTime = sec;
@@ -954,12 +1012,12 @@ themeBtn.addEventListener('click', () => {
 // ===================================
 let currLang = "zh-TW";
 const STRINGS = {
-  "zh-TW": { title: "多功能批次搜尋器", subtitle: "整合字典、YouTube 與實用工具的控制台", warning: "⚠️ 若按鈕無反應，請嘗試「硬重新整理」", cambridge: "劍橋詞典", dreye: "譯典通", usage: "🎯 使用說明：", tip1: "支援多行輸入，紫色按鈕可一鍵全開。", tip2: "點擊天氣卡片可展開查看詳細資訊。", dragTip: "拖曳調整", start: "開始", pause: "暫停", reset: "重置" },
-  "en": { title: "Batch Search Engine", subtitle: "Dictionary, YouTube, and Utilities Dashboard", warning: "⚠️ If failed, try Hard Refresh (Ctrl+Shift+R)", cambridge: "Cambridge", dreye: "Dr.eye", usage: "🎯 Usage:", tip1: "Multi-line supported. Purple button opens all.", tip2: "Click weather card to expand details.", dragTip: "Drag to set", start: "Start", pause: "Pause", reset: "Reset" },
-  "ja": { title: "多機能一括検索", subtitle: "辞書・YouTube・ツールの統合ダッシュボード", warning: "⚠️ 反応がない場合はハードリロードしてください", cambridge: "ケンブリッジ", dreye: "Dr.eye", usage: "🎯 使い方：", tip1: "複数行対応。紫ボタンで一括表示。", tip2: "天気カードをクリックして詳細表示。", dragTip: "ドラッグ設定", start: "開始", pause: "一時停止", reset: "リセット" },
-  "ko": { title: "다기능 일괄 검색", subtitle: "사전, YouTube 및 유틸리티 대시보드", warning: "⚠️ 반응이 없으면 강력 새로고침 하세요", cambridge: "캠브리지", dreye: "Dr.eye", usage: "🎯 사용법:", tip1: "여러 줄 지원. 보라색 버튼은 모두 엽니다.", tip2: "날씨 카드를 클릭하여 세부 정보 확인.", dragTip: "드래그 설정", start: "시작", pause: "일시정지", reset: "초기화" },
-  "zh-CN": { title: "多功能批量搜索器", subtitle: "整合词典、YouTube 与实用工具的控制台", warning: "⚠️ 若无反应，请尝试“硬刷新”", cambridge: "剑桥词典", dreye: "译典通", usage: "🎯 使用说明：", tip1: "支持多行。紫色按钮一键全开。", tip2: "点击天气卡片可展开查看详细信息。", dragTip: "拖拽调整", start: "开始", pause: "暂停", reset: "重置" },
-  "fr": { title: "Recherche par lots", subtitle: "Dictionnaire, YouTube et Utilitaires", warning: "⚠️ Si bloqué, essayez Ctrl+Shift+R", cambridge: "Cambridge", dreye: "Dr.eye", usage: "🎯 Emploi:", tip1: "Multiligne OK. Bouton violet ouvre tout.", tip2: "Cliquez sur la météo pour voir les détails.", dragTip: "Glisser", start: "Démarrer", pause: "Pause", reset: "Réinitialiser" }
+  "zh-TW": { title: "全能批次搜尋控制台", subtitle: "整合搜尋引擎、字典與實用工具的中心", warning: "⚠️ 若按鈕無反應，請嘗試「硬重新整理」", cambridge: "劍橋詞典", dreye: "譯典通", googleweb: "Google / 網頁", usage: "🎯 使用說明：", tip1: "支援多行輸入，紫色按鈕可一鍵全開。", tip2: "點擊天氣卡片可展開查看詳細資訊。", tip3: "番茄鐘慢速拖曳可微調時間，快速拖曳可大幅調整。", dragTip: "拖曳調整", start: "開始", pause: "暫停", reset: "重置" },
+  "en": { title: "Batch Search Console", subtitle: "Search Engine, Dictionary, and Utilities Hub", warning: "⚠️ If failed, try Hard Refresh (Ctrl+Shift+R)", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 Usage:", tip1: "Multi-line supported. Purple button opens all.", tip2: "Click weather card to expand details.", tip3: "Slow drag timer for precision, fast for speed.", dragTip: "Drag to set", start: "Start", pause: "Pause", reset: "Reset" },
+  "ja": { title: "全能一括検索コンソール", subtitle: "検索・辞書・ツールの統合ハブ", warning: "⚠️ 反応がない場合はハードリロードしてください", cambridge: "ケンブリッジ", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 使い方：", tip1: "複数行対応。紫ボタンで一括表示。", tip2: "天気カードをクリックして詳細表示。", tip3: "タイマーはゆっくりドラッグで微調整可能。", dragTip: "ドラッグ設定", start: "開始", pause: "一時停止", reset: "リセット" },
+  "ko": { title: "다기능 일괄 검색 콘솔", subtitle: "검색 엔진, 사전 및 유틸리티 허브", warning: "⚠️ 반응이 없으면 강력 새로고침 하세요", cambridge: "캠브리지", dreye: "Dr.eye", googleweb: "Google / 웹", usage: "🎯 사용법:", tip1: "여러 줄 지원. 보라색 버튼은 모두 엽니다.", tip2: "날씨 카드를 클릭하여 세부 정보 확인.", tip3: "타이머를 천천히 드래그하여 미세 조정.", dragTip: "드래그 설정", start: "시작", pause: "일시정지", reset: "초기화" },
+  "zh-CN": { title: "全能批量搜索控制台", subtitle: "整合搜索引擎、词典与实用工具的中心", warning: "⚠️ 若无反应，请尝试“硬刷新”", cambridge: "剑桥词典", dreye: "译典通", googleweb: "Google / 网页", usage: "🎯 使用说明：", tip1: "支持多行。紫色按钮一键全开。", tip2: "点击天气卡片可展开查看详细信息。", tip3: "番茄钟慢速拖拽可微调时间，快速拖拽可大幅调整。", dragTip: "拖拽调整", start: "开始", pause: "暂停", reset: "重置" },
+  "fr": { title: "Console de Recherche", subtitle: "Moteur de recherche, Dictionnaire et Utilitaires", warning: "⚠️ Si bloqué, essayez Ctrl+Shift+R", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 Emploi:", tip1: "Multiligne OK. Bouton violet ouvre tout.", tip2: "Cliquez sur la météo pour voir les détails.", tip3: "Glissez lentement pour plus de précision.", dragTip: "Glisser", start: "Démarrer", pause: "Pause", reset: "Réinitialiser" }
 };
 
 const langMenu = document.getElementById('langMenu');
@@ -998,9 +1056,11 @@ function updateLang() {
   document.querySelector('[data-i18n="warning"]').textContent = s.warning;
   document.querySelector('[data-i18n="cambridge"]').textContent = s.cambridge;
   document.querySelector('[data-i18n="dreye"]').textContent = s.dreye;
+  document.querySelector('[data-i18n="googleweb"]').textContent = s.googleweb;
   document.querySelector('[data-i18n="usage"]').textContent = s.usage;
   document.querySelector('[data-i18n="tip1"]').textContent = s.tip1;
   document.querySelector('[data-i18n="tip2"]').textContent = s.tip2;
+  document.querySelector('[data-i18n="tip3"]').textContent = s.tip3;
   document.querySelector('[data-i18n="dragTip"]').textContent = s.dragTip;
   
   if(!timerId) startBtn.textContent = s.start;
