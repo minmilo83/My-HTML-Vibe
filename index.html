@@ -1,291 +1,255 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Omni-Search 專案入口 - Vibe Coding</title>
-
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Omni-Search 歷程入口</title>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
-        /* --- 1. CSS 變數定義 (核心控制器) --- */
+        /* =======================
+           1. Design Tokens (沿用 V5 變數)
+           ======================= */
         :root {
-            /* === 預設：淺色模式 (Light Mode) === */
-            --bg-gradient: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
-            --text-color: #2d3436; /* 深灰字 */
-            --primary-color: #007bff; /* 主要連結/選單色 */
-
-            /* 玻璃材質 */
+            --bg-gradient: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+            --text-color: #2d3436;
             --glass-bg: rgba(255, 255, 255, 0.65);
             --glass-border: rgba(255, 255, 255, 0.8);
-            --glass-shadow: 0 8px 32px 0 rgba(100, 100, 111, 0.15);
-            
-            /* 文字發光 (淺色模式下很弱或沒有) */
-            --text-glow: none;
+            --glass-thickness: inset 0 1px 2px rgba(255, 255, 255, 0.95), inset 0 -1px 2px rgba(0, 0, 0, 0.03);
+            --glass-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 5px 15px rgba(0,0,0,0.05);
+            --btn-bg: rgba(255, 255, 255, 0.5);
+            --cursor-size: 60px;
+            --cursor-bg: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.02) 10%, transparent 60%);
+            --cursor-backdrop: blur(5px) brightness(1.1) saturate(1.2);
+            --primary-gradient: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
         }
 
         [data-theme="dark"] {
-            /* === 切換後：深色模式 (Dark Mode) === */
-            --bg-gradient: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-            --text-color: #ffffff; /* 白字 */
-            --primary-color: #00d2ff; /* 主要連結/選單色 */
-
-            /* 玻璃材質 */
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
-            
-            /* 文字發光 (深色模式下強烈) */
-            --text-glow: 0 0 15px rgba(255, 255, 255, 0.3);
+            --bg-gradient: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            --text-color: #e0f7fa;
+            --glass-bg: rgba(20, 20, 30, 0.5);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+            --btn-bg: rgba(255, 255, 255, 0.08);
         }
 
-        /* --- 2. 全局佈局 --- */
+        /* =======================
+           2. Base Styles
+           ======================= */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        @media (pointer: fine) { * { cursor: none !important; } }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            padding: 40px 20px;
-            text-align: center;
+            margin: 0; padding: 40px 20px;
+            font-family: "Noto Sans TC", system-ui, sans-serif;
             background: var(--bg-gradient);
             color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             min-height: 100vh;
-            margin: 0;
-            transition: all 0.6s ease-in-out; /* 平滑切換動畫 */
-            position: relative;
+            display: flex; flex-direction: column; align-items: center;
+            transition: background 0.5s ease;
             overflow-x: hidden;
         }
 
-        /* --- 3. 液態玻璃通用類別 --- */
-        .liquid-glass {
-            background: var(--glass-bg);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--glass-shadow);
-            border-radius: 24px;
-            transition: all 0.4s ease;
-        }
-
-        /* --- 4. 標題與文字 --- */
-        h1, h2 {
-            font-weight: 300;
-            letter-spacing: 2px;
-            text-shadow: var(--text-glow);
-            transition: all 0.5s ease;
-            margin-bottom: 20px;
-        }
-        p {
-            opacity: 0.8;
-            line-height: 1.6;
-        }
-
-        /* --- 5. 主內容容器 (入口頁面的玻璃卡片) --- */
-        .main-entry-container {
-            width: 90%;
-            max-width: 600px; /* 限制最大寬度 */
-            padding: 30px;
-            margin-top: 50px; /* 讓開主題切換按鈕 */
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            position: relative;
-        }
-
-        /* --- 6. 主題切換按鈕 (漂浮) --- */
-        #themeToggle {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            color: var(--text-color);
-            cursor: pointer;
-            font-size: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 100;
-            backdrop-filter: blur(10px);
-            box-shadow: var(--glass-shadow);
-        }
-        #themeToggle:hover {
-            transform: rotate(180deg) scale(1.1);
-            box-shadow: 0 0 15px var(--text-color);
-        }
-
-        /* --- 7. 語言選單 --- */
-        .language-dropdown {
-            position: absolute; /* 相對於 main-entry-container 定位 */
-            top: -20px; /* 移到上方 */
-            left: 20px;
-            z-index: 1; /* 確保在其他內容之上 */
-            text-align: left;
-        }
-        .language-dropdown button {
-            background: var(--primary-color);
-            color: white;
-            padding: 8px 15px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        .language-dropdown button:hover {
-            opacity: 0.9;
-        }
-        .language-dropdown-content {
+        /* 自定義游標 */
+        #customCursor {
+            position: fixed; top: 0; left: 0; z-index: 9999;
+            width: var(--cursor-size); height: var(--cursor-size);
+            pointer-events: none; transform: translate(-50%, -50%);
+            background: var(--cursor-bg); backdrop-filter: var(--cursor-backdrop);
+            border: 1px solid rgba(255,255,255,0.4); border-radius: 50%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             display: none;
-            position: absolute;
-            background-color: var(--glass-bg);
-            min-width: 150px;
-            box-shadow: var(--glass-shadow);
-            border-radius: 8px;
+        }
+        @media (pointer: fine) { #customCursor { display: block; } }
+
+        /* =======================
+           3. Entry Components
+           ======================= */
+        .glass-card {
+            padding: 40px; border-radius: 32px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
             border: 1px solid var(--glass-border);
-            padding: 10px 0;
-            z-index: 10;
-            left: 0;
-            margin-top: 5px;
-            text-align: left;
-        }
-        .language-dropdown-content a {
-            color: var(--text-color);
-            padding: 8px 15px;
-            text-decoration: none;
-            display: block;
-        }
-        .language-dropdown-content a:hover {
-            background-color: rgba(0,0,0,0.1);
-        }
-        .language-dropdown:hover .language-dropdown-content {
-            display: block;
-        }
-        
-        /* --- 8. 版本卡片 --- */
-        .version-card {
-            background: rgba(255, 255, 255, 0.05); /* 比容器淺一點 */
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 15px 20px;
-            margin-bottom: 10px;
-            text-decoration: none;
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start; /* 文字靠左 */
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
-            text-align: left; /* 確保文字靠左 */
-        }
-        .version-card:hover {
-            transform: translateY(-3px) scale(1.01);
-            background: rgba(255, 255, 255, 0.1);
-            border-color: var(--primary-color);
-            box-shadow: 0 0 15px rgba(0, 123, 255, 0.3);
-        }
-        .version-card h3 {
-            margin: 0 0 5px 0;
-            font-weight: 600;
-            font-size: 1.2em;
-            color: var(--primary-color); /* 版本標題使用主色 */
-        }
-        .version-card p {
-            margin: 0;
-            font-size: 0.9em;
-            opacity: 0.7;
-        }
-        .v-tag {
-            background: var(--primary-color);
-            color: white;
-            padding: 3px 10px;
-            border-radius: 5px;
-            font-size: 0.75em;
-            font-weight: bold;
-            margin-bottom: 8px;
-            letter-spacing: 1px;
+            box-shadow: var(--glass-shadow), var(--glass-thickness);
+            width: 100%; max-width: 600px;
+            text-align: center; position: relative;
         }
 
+        h1 { margin: 0 0 10px 0; font-size: 2.2em; font-weight: 700; }
+        .vibe-badge { font-size: 0.8em; opacity: 0.6; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 30px; }
+
+        /* 版本卡片清單 */
+        .version-list { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+        
+        .version-item {
+            padding: 20px; border-radius: 20px;
+            background: var(--btn-bg);
+            border: 1px solid var(--glass-border);
+            text-decoration: none; color: var(--text-color);
+            display: flex; align-items: center; justify-content: space-between;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: left;
+        }
+        .version-item:hover {
+            transform: translateY(-5px) scale(1.02);
+            background: rgba(255,255,255,0.3);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            border-color: rgba(255,255,255,1);
+        }
+
+        .v-info { display: flex; flex-direction: column; gap: 4px; }
+        .v-info h3 { margin: 0; font-size: 1.15em; display: flex; align-items: center; gap: 8px; }
+        .v-info p { margin: 0; font-size: 0.85em; opacity: 0.7; }
+        
+        /* 版本標籤樣式 */
+        .v-tag { 
+            padding: 2px 10px; border-radius: 50px; font-size: 11px; font-weight: bold;
+            background: var(--primary-gradient); color: white; text-transform: uppercase;
+        }
+        .v-tag.legacy { background: linear-gradient(135deg, #bdc3c7 0%, #2c3e50 100%); opacity: 0.6; }
+
+        /* 導覽按鈕圖示 */
+        .v-icon { font-size: 24px; opacity: 0.5; transition: 0.3s; }
+        .version-item:hover .v-icon { opacity: 1; transform: translateX(5px); }
+
+        /* FAB 樣式 */
+        #langFab {
+            position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px;
+            background: var(--glass-bg); border: 1px solid var(--glass-border);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 24px; cursor: pointer; backdrop-filter: blur(10px); z-index: 100;
+        }
+        #langMenu {
+            position: fixed; bottom: 100px; right: 30px; background: var(--glass-bg);
+            border: 1px solid var(--glass-border); border-radius: 16px; padding: 10px;
+            display: none; flex-direction: column; gap: 5px; backdrop-filter: blur(20px);
+        }
+        #langMenu.active { display: flex; animation: slideIn 0.3s ease forwards; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .lang-opt { padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9em; font-weight: 500; transition: 0.2s; }
+        .lang-opt:hover { background: rgba(255,255,255,0.2); }
+
+        #themeToggle {
+            position: absolute; top: 20px; right: 20px;
+            width: 44px; height: 44px; border-radius: 50%;
+            background: var(--btn-bg); border: 1px solid var(--glass-border);
+            color: var(--text-color); font-size: 18px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
     </style>
 </head>
-<body>
+<body data-theme="light">
 
-    <button id="themeToggle" onclick="toggleTheme()" title="切換深淺色模式">🌙</button>
+<div id="customCursor"></div>
 
-    <div class="main-entry-container liquid-glass">
-        
-        <div class="language-dropdown">
-            <button><img src="https://flagcdn.com/w20/tw.png" alt="TW" style="width:20px; height:auto;"> 語音</button>
-            <div class="language-dropdown-content">
-                <a href="#lang-tw"><img src="https://flagcdn.com/w20/tw.png" alt="TW" style="width:20px; height:auto;"> 繁體中文</a>
-                <a href="#lang-cn"><img src="https://flagcdn.com/w20/cn.png" alt="CN" style="width:20px; height:auto;"> 简体中文</a>
-                <a href="#lang-hk"><img src="https://flagcdn.com/w20/hk.png" alt="HK" style="width:20px; height:auto;"> 港體中文</a>
-                <a href="#lang-en"><img src="https://flagcdn.com/w20/gb.png" alt="EN" style="width:20px; height:auto;"> English</a>
-                <a href="#lang-es"><img src="https://flagcdn.com/w20/es.png" alt="ES" style="width:20px; height:auto;"> Español</a>
-                <a href="#lang-fr"><img src="https://flagcdn.com/w20/fr.png" alt="FR" style="width:20px; height:auto;"> Français</a>
+<button id="themeToggle" onclick="toggleTheme()" class="interactive">🌙</button>
+
+<div id="langFab" class="interactive" onclick="toggleLang()">🌐</div>
+<div id="langMenu">
+    <div class="lang-opt" onclick="setLang('zh-TW')">繁體中文</div>
+    <div class="lang-opt" onclick="setLang('zh-CN')">简体中文</div>
+    <div class="lang-opt" onclick="setLang('en')">English</div>
+    <div class="lang-opt" onclick="setLang('ja')">日本語</div>
+</div>
+
+<div class="glass-card">
+    <div class="vibe-badge">Vibe Coding Journey</div>
+    <h1>Omni-Search Hub</h1>
+    <p>全能批次搜尋控制台：開發歷程紀錄</p>
+
+    <div class="version-list">
+        <a href="OmniSearch_V5.html" class="version-item interactive">
+            <div class="v-info">
+                <h3>V5 專業全相容版 <span class="v-tag">LATEST</span></h3>
+                <p>Popup 偵測、iOS 16px 適配、阻尼動畫與焦點優化</p>
             </div>
-        </div>
-
-        <h2>Omni-Search 歷程紀錄</h2>
-        <p>Vibe Coding 美學與效能推進。</p>
-
-        <a href="OmniSearch_V5.html" class="version-card liquid-glass">
-            <span class="v-tag">V5</span>
-            <h3>跨平台專業相容版</h3>
-            <p>Popup 攔截、iOS 適配、阻尼動畫精進。</p>
+            <i class="ph ph-rocket-launch v-icon"></i>
         </a>
 
-        <a href="OmniSearch_V4.html" class="version-card liquid-glass">
-            <span class="v-tag">V4</span>
-            <h3>全能批次控制台</h3>
-            <p>倍增 Google/Web 搜尋、UI/UX 響應。</p>
+        <a href="OmniSearch_V4.html" class="version-item interactive">
+            <div class="v-info">
+                <h3>V4 全能控制台 <span class="v-tag" style="background:#4ca1af">NEW</span></h3>
+                <p>集成實時天氣系統、Google / Web 深度搜尋模式</p>
+            </div>
+            <i class="ph ph-cloud-sun v-icon"></i>
         </a>
 
-        <a href="OmniSearch_V3.html" class="version-card liquid-glass">
-            <span class="v-tag">V3</span>
-            <h3>雙字典批次版</h3>
-            <p>經典批次查詢體驗、阻尼動畫精進。</p>
+        <a href="OmniSearch_V3.html" class="version-item interactive">
+            <div class="v-info">
+                <h3>V3 穩定雙字典版</h3>
+                <p>經典劍橋/譯典通批次邏輯與毛玻璃介面初步定型</p>
+            </div>
+            <i class="ph ph-books v-icon"></i>
         </a>
 
-        <a href="OmniSearch_V2.html" class="version-card liquid-glass">
-            <span class="v-tag">V2</span>
-            <h3>獨具美學處理</h3>
-            <p>液態玻璃美學、深色模式。</p>
+        <a href="OmniSearch_V2.html" class="version-item interactive">
+            <div class="v-info">
+                <h3>V2 美學處理版 <span class="v-tag legacy">Legacy</span></h3>
+                <p>導入深色模式切換與液態按鈕點擊特效</p>
+            </div>
+            <i class="ph ph-palette v-icon"></i>
         </a>
 
-        <a href="OmniSearch_V1.html" class="version-card liquid-glass">
-            <span class="v-tag">V1</span>
-            <h3>原型試驗版</h3>
-            <p>各類詞語簡易查詢。</p>
+        <a href="OmniSearch_V1.html" class="version-item interactive">
+            <div class="v-info">
+                <h3>V1 原型試驗版 <span class="v-tag legacy">Legacy</span></h3>
+                <p>最純粹的批次搜尋功能，一切創意的起點</p>
+            </div>
+            <i class="ph ph-test-tube v-icon"></i>
         </a>
-
     </div>
+</div>
 
-    <script>
-        // --- 主題切換邏輯 ---
-        function toggleTheme() {
-            const body = document.body;
-            const toggleButton = document.getElementById('themeToggle');
-            const currentTheme = body.getAttribute('data-theme');
-            
-            if (currentTheme === 'dark') {
-                body.removeAttribute('data-theme');
-                toggleButton.textContent = '🌙'; 
-            } else {
-                body.setAttribute('data-theme', 'dark');
-                toggleButton.textContent = '☀️'; 
-            }
+<script>
+    // --- 1. 游標邏輯 (沿用 V5) ---
+    const cursor = document.getElementById('customCursor');
+    let mouseX = 0, mouseY = 0, cursorX = 0, cursorY = 0;
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+    if (!isTouchDevice) {
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX; mouseY = e.clientY;
+        });
+        function animateCursor() {
+            cursorX += (mouseX - cursorX) * 0.2;
+            cursorY += (mouseY - cursorY) * 0.2;
+            cursor.style.left = cursorX + 'px';
+            cursor.style.top = cursorY + 'px';
+            requestAnimationFrame(animateCursor);
         }
-        // 頁面載入時檢查系統偏好設定
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.body.setAttribute('data-theme', 'dark');
-            document.getElementById('themeToggle').textContent = '☀️';
+        animateCursor();
+    }
+
+    // --- 2. 主題切換 ---
+    function toggleTheme() {
+        const body = document.body;
+        const btn = document.getElementById('themeToggle');
+        if (body.getAttribute('data-theme') === 'dark') {
+            body.setAttribute('data-theme', 'light');
+            btn.textContent = '🌙';
+        } else {
+            body.setAttribute('data-theme', 'dark');
+            btn.textContent = '☀️';
         }
-    </script>
+    }
+
+    // --- 3. 語言選單 ---
+    function toggleLang() { document.getElementById('langMenu').classList.toggle('active'); }
+    function setLang(l) { 
+        document.getElementById('langMenu').classList.remove('active');
+        // 這裡可未來擴充多語系切換邏輯
+    }
+
+    // --- 4. 磁吸效果 ---
+    document.querySelectorAll('.interactive').forEach(el => {
+        if(isTouchDevice) return;
+        el.addEventListener('mousemove', (e) => {
+            const rect = el.getBoundingClientRect();
+            const x = (e.clientX - (rect.left + rect.width/2)) * 0.15;
+            const y = (e.clientY - (rect.top + rect.height/2)) * 0.15;
+            el.style.transform = `translate(${x}px, ${y}px)`;
+        });
+        el.addEventListener('mouseleave', () => el.style.transform = 'translate(0, 0)');
+    });
+</script>
 </body>
 </html>
