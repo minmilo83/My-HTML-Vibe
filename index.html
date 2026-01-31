@@ -3,11 +3,11 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>Omni-Search 歷程入口</title>
+    <title>Omni-Search Hub | Vibe Coding</title>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
         /* =======================
-           1. Design Tokens (沿用 V5 變數)
+           1. Design Tokens
            ======================= */
         :root {
             --bg-gradient: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
@@ -26,21 +26,20 @@
         [data-theme="dark"] {
             --bg-gradient: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
             --text-color: #e0f7fa;
-            --glass-bg: rgba(20, 20, 30, 0.5);
+            --glass-bg: rgba(20, 20, 30, 0.6);
             --glass-border: rgba(255, 255, 255, 0.1);
             --glass-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
             --btn-bg: rgba(255, 255, 255, 0.08);
         }
 
         /* =======================
-           2. Base Styles
+           2. 基礎樣式
            ======================= */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        @media (pointer: fine) { * { cursor: none !important; } }
-
+        
         body {
             margin: 0; padding: 40px 20px;
-            font-family: "Noto Sans TC", system-ui, sans-serif;
+            font-family: "Noto Sans TC", system-ui, -apple-system, sans-serif;
             background: var(--bg-gradient);
             color: var(--text-color);
             min-height: 100vh;
@@ -49,20 +48,22 @@
             overflow-x: hidden;
         }
 
-        /* 自定義游標 */
+        /* 自定義游標特效 */
         #customCursor {
             position: fixed; top: 0; left: 0; z-index: 9999;
             width: var(--cursor-size); height: var(--cursor-size);
-            pointer-events: none; transform: translate(-50%, -50%);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
             background: var(--cursor-bg); backdrop-filter: var(--cursor-backdrop);
             border: 1px solid rgba(255,255,255,0.4); border-radius: 50%;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             display: none;
+            transition: width 0.3s, height 0.3s, background 0.3s;
         }
         @media (pointer: fine) { #customCursor { display: block; } }
 
         /* =======================
-           3. Entry Components
+           3. UI 組件
            ======================= */
         .glass-card {
             padding: 40px; border-radius: 32px;
@@ -72,12 +73,12 @@
             box-shadow: var(--glass-shadow), var(--glass-thickness);
             width: 100%; max-width: 600px;
             text-align: center; position: relative;
+            z-index: 10;
         }
 
         h1 { margin: 0 0 10px 0; font-size: 2.2em; font-weight: 700; }
         .vibe-badge { font-size: 0.8em; opacity: 0.6; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 30px; }
 
-        /* 版本卡片清單 */
         .version-list { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
         
         .version-item {
@@ -88,45 +89,72 @@
             display: flex; align-items: center; justify-content: space-between;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             text-align: left;
+            position: relative; overflow: hidden;
         }
         .version-item:hover {
             transform: translateY(-5px) scale(1.02);
             background: rgba(255,255,255,0.3);
             box-shadow: 0 15px 30px rgba(0,0,0,0.1);
-            border-color: rgba(255,255,255,1);
+            border-color: rgba(255,255,255,0.9);
         }
 
-        .v-info { display: flex; flex-direction: column; gap: 4px; }
         .v-info h3 { margin: 0; font-size: 1.15em; display: flex; align-items: center; gap: 8px; }
-        .v-info p { margin: 0; font-size: 0.85em; opacity: 0.7; }
+        .v-info p { margin: 4px 0 0 0; font-size: 0.85em; opacity: 0.7; }
         
-        /* 版本標籤樣式 */
         .v-tag { 
             padding: 2px 10px; border-radius: 50px; font-size: 11px; font-weight: bold;
             background: var(--primary-gradient); color: white; text-transform: uppercase;
         }
         .v-tag.legacy { background: linear-gradient(135deg, #bdc3c7 0%, #2c3e50 100%); opacity: 0.6; }
 
-        /* 導覽按鈕圖示 */
         .v-icon { font-size: 24px; opacity: 0.5; transition: 0.3s; }
-        .version-item:hover .v-icon { opacity: 1; transform: translateX(5px); }
+        .version-item:hover .v-icon { opacity: 1; transform: translateX(5px) scale(1.1); color: #a18cd1; }
 
-        /* FAB 樣式 */
+        /* =======================
+           4. 懸浮按鈕與選單 (已為長列表優化)
+           ======================= */
         #langFab {
             position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px;
             background: var(--glass-bg); border: 1px solid var(--glass-border);
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 24px; cursor: pointer; backdrop-filter: blur(10px); z-index: 100;
+            font-size: 24px; cursor: pointer; backdrop-filter: blur(10px); 
+            z-index: 1000;
+            box-shadow: var(--glass-shadow); transition: transform 0.3s;
         }
+        #langFab:active { transform: scale(0.9); }
+
         #langMenu {
-            position: fixed; bottom: 100px; right: 30px; background: var(--glass-bg);
-            border: 1px solid var(--glass-border); border-radius: 16px; padding: 10px;
-            display: none; flex-direction: column; gap: 5px; backdrop-filter: blur(20px);
+            position: fixed; bottom: 100px; right: 30px; 
+            background: var(--glass-bg); backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border); border-radius: 16px; padding: 8px;
+            display: none; flex-direction: column; gap: 4px;
+            z-index: 1001;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            min-width: 160px;
+            
+            /* 新增：長列表捲動優化 */
+            max-height: 60vh; /* 限制最大高度，避免超出螢幕 */
+            overflow-y: auto; /* 超出時顯示捲軸 */
+            scrollbar-width: thin; /* Firefox */
         }
-        #langMenu.active { display: flex; animation: slideIn 0.3s ease forwards; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .lang-opt { padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9em; font-weight: 500; transition: 0.2s; }
-        .lang-opt:hover { background: rgba(255,255,255,0.2); }
+        
+        /* 自定義捲軸樣式 (Chrome/Safari) */
+        #langMenu::-webkit-scrollbar { width: 4px; }
+        #langMenu::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 4px; }
+        
+        #langMenu.active { display: flex; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        
+        @keyframes slideUp { 
+            from { opacity: 0; transform: translateY(20px) scale(0.95); } 
+            to { opacity: 1; transform: translateY(0) scale(1); } 
+        }
+
+        .lang-opt { 
+            padding: 12px 16px; border-radius: 8px; cursor: pointer; 
+            font-size: 0.95em; font-weight: 500; transition: 0.2s; 
+            color: var(--text-color); display: flex; align-items: center; gap: 10px;
+        }
+        .lang-opt:hover { background: rgba(255,255,255,0.3); transform: translateX(2px); }
 
         #themeToggle {
             position: absolute; top: 20px; right: 20px;
@@ -134,6 +162,7 @@
             background: var(--btn-bg); border: 1px solid var(--glass-border);
             color: var(--text-color); font-size: 18px; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
+            z-index: 20; transition: transform 0.3s;
         }
     </style>
 </head>
@@ -143,12 +172,20 @@
 
 <button id="themeToggle" onclick="toggleTheme()" class="interactive">🌙</button>
 
-<div id="langFab" class="interactive" onclick="toggleLang()">🌐</div>
+<div id="langFab" class="interactive" onclick="toggleLang(event)">🌐</div>
 <div id="langMenu">
-    <div class="lang-opt" onclick="setLang('zh-TW')">繁體中文</div>
-    <div class="lang-opt" onclick="setLang('zh-CN')">简体中文</div>
-    <div class="lang-opt" onclick="setLang('en')">English</div>
-    <div class="lang-opt" onclick="setLang('ja')">日本語</div>
+    <div class="lang-opt" onclick="setLang('en')">🇺🇸 English</div>
+    <div class="lang-opt" onclick="setLang('zh-TW')">🇹🇼 繁體中文</div>
+    <div class="lang-opt" onclick="setLang('zh-CN')">🇨🇳 简体中文</div>
+    <div class="lang-opt" onclick="setLang('ja')">🇯🇵 日本語</div>
+    <div class="lang-opt" onclick="setLang('ko')">🇰🇷 한국어</div>
+    <div class="lang-opt" onclick="setLang('es')">🇪🇸 Español</div>
+    <div class="lang-opt" onclick="setLang('pt')">🇵🇹 Português</div>
+    <div class="lang-opt" onclick="setLang('vi')">🇻🇳 Tiếng Việt</div>
+    <div class="lang-opt" onclick="setLang('bn')">🇧🇩 বাংলা</div>
+    <div class="lang-opt" onclick="setLang('hi')">🇮🇳 हिन्दी</div>
+    <div class="lang-opt" onclick="setLang('ru')">🇷🇺 Русский</div>
+    <div class="lang-opt" onclick="setLang('zh-HK')">🇭🇰 粵語</div>
 </div>
 
 <div class="glass-card">
@@ -160,7 +197,7 @@
         <a href="OmniSearch_V5.html" class="version-item interactive">
             <div class="v-info">
                 <h3>V5 專業全相容版 <span class="v-tag">LATEST</span></h3>
-                <p>Popup 偵測、iOS 16px 適配、阻尼動畫與焦點優化</p>
+                <p>Popup 偵測、iOS 16px 適配、阻尼動畫</p>
             </div>
             <i class="ph ph-rocket-launch v-icon"></i>
         </a>
@@ -168,7 +205,7 @@
         <a href="OmniSearch_V4.html" class="version-item interactive">
             <div class="v-info">
                 <h3>V4 全能控制台 <span class="v-tag" style="background:#4ca1af">NEW</span></h3>
-                <p>集成實時天氣系統、Google / Web 深度搜尋模式</p>
+                <p>實時天氣系統、Web 深度搜尋整合</p>
             </div>
             <i class="ph ph-cloud-sun v-icon"></i>
         </a>
@@ -176,23 +213,23 @@
         <a href="OmniSearch_V3.html" class="version-item interactive">
             <div class="v-info">
                 <h3>V3 穩定雙字典版</h3>
-                <p>經典劍橋/譯典通批次邏輯與毛玻璃介面初步定型</p>
+                <p>經典劍橋/譯典通批次邏輯</p>
             </div>
             <i class="ph ph-books v-icon"></i>
         </a>
 
         <a href="OmniSearch_V2.html" class="version-item interactive">
             <div class="v-info">
-                <h3>V2 美學處理版 <span class="v-tag legacy">Legacy</span></h3>
-                <p>導入深色模式切換與液態按鈕點擊特效</p>
+                <h3>V2 美學處理版</h3>
+                <p>導入深色模式與液態按鈕</p>
             </div>
             <i class="ph ph-palette v-icon"></i>
         </a>
 
         <a href="OmniSearch_V1.html" class="version-item interactive">
             <div class="v-info">
-                <h3>V1 原型試驗版 <span class="v-tag legacy">Legacy</span></h3>
-                <p>最純粹的批次搜尋功能，一切創意的起點</p>
+                <h3>V1 原型試驗版</h3>
+                <p>最純粹的批次搜尋功能起點</p>
             </div>
             <i class="ph ph-test-tube v-icon"></i>
         </a>
@@ -200,18 +237,28 @@
 </div>
 
 <script>
-    // --- 1. 游標邏輯 (沿用 V5) ---
+    // --- 1. 裝置偵測與游標動畫 ---
     const cursor = document.getElementById('customCursor');
     let mouseX = 0, mouseY = 0, cursorX = 0, cursorY = 0;
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
     if (!isTouchDevice) {
         document.addEventListener('mousemove', (e) => {
             mouseX = e.clientX; mouseY = e.clientY;
+            
+            // 互動放大邏輯
+            if (e.target.closest('.interactive') || e.target.closest('.lang-opt')) {
+                cursor.style.transform = 'translate(-50%, -50%) scale(1.5)';
+                cursor.style.backgroundColor = 'rgba(255,255,255,0.1)';
+            } else {
+                cursor.style.transform = 'translate(-50%, -50%) scale(1)';
+                cursor.style.backgroundColor = 'var(--cursor-bg)';
+            }
         });
+
         function animateCursor() {
-            cursorX += (mouseX - cursorX) * 0.2;
-            cursorY += (mouseY - cursorY) * 0.2;
+            cursorX += (mouseX - cursorX) * 0.15;
+            cursorY += (mouseY - cursorY) * 0.15;
             cursor.style.left = cursorX + 'px';
             cursor.style.top = cursorY + 'px';
             requestAnimationFrame(animateCursor);
@@ -219,37 +266,60 @@
         animateCursor();
     }
 
-    // --- 2. 主題切換 ---
+    // --- 2. 語言選單邏輯 (阻止冒泡) ---
+    function toggleLang(e) {
+        e.stopPropagation(); 
+        const menu = document.getElementById('langMenu');
+        menu.classList.toggle('active');
+        
+        const fab = document.getElementById('langFab');
+        fab.style.transform = 'scale(0.9)';
+        setTimeout(() => fab.style.transform = 'scale(1)', 150);
+    }
+
+    function setLang(l) {
+        console.log(`Language switched to: ${l}`);
+        document.getElementById('langMenu').classList.remove('active');
+        // 這裡可加入實際切換語言的邏輯
+    }
+
+    // 點擊空白處關閉
+    document.addEventListener('click', (e) => {
+        const menu = document.getElementById('langMenu');
+        const fab = document.getElementById('langFab');
+        if (!menu.contains(e.target) && !fab.contains(e.target)) {
+            menu.classList.remove('active');
+        }
+    });
+
+    // --- 3. 磁吸效果 ---
+    if (!isTouchDevice) {
+        document.querySelectorAll('.interactive').forEach(el => {
+            el.addEventListener('mousemove', (e) => {
+                const rect = el.getBoundingClientRect();
+                const x = (e.clientX - (rect.left + rect.width / 2)) * 0.2;
+                const y = (e.clientY - (rect.top + rect.height / 2)) * 0.2;
+                el.style.transform = `translate(${x}px, ${y}px) scale(1.02)`;
+            });
+
+            el.addEventListener('mouseleave', () => {
+                el.style.transform = 'translate(0, 0) scale(1)';
+            });
+        });
+    }
+
+    // --- 4. 主題切換 ---
     function toggleTheme() {
         const body = document.body;
         const btn = document.getElementById('themeToggle');
-        if (body.getAttribute('data-theme') === 'dark') {
-            body.setAttribute('data-theme', 'light');
-            btn.textContent = '🌙';
-        } else {
-            body.setAttribute('data-theme', 'dark');
-            btn.textContent = '☀️';
-        }
+        const isDark = body.getAttribute('data-theme') === 'dark';
+        
+        body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        btn.textContent = isDark ? '🌙' : '☀️';
+        
+        btn.style.transform = 'rotate(360deg)';
+        setTimeout(() => btn.style.transform = 'rotate(0deg)', 400);
     }
-
-    // --- 3. 語言選單 ---
-    function toggleLang() { document.getElementById('langMenu').classList.toggle('active'); }
-    function setLang(l) { 
-        document.getElementById('langMenu').classList.remove('active');
-        // 這裡可未來擴充多語系切換邏輯
-    }
-
-    // --- 4. 磁吸效果 ---
-    document.querySelectorAll('.interactive').forEach(el => {
-        if(isTouchDevice) return;
-        el.addEventListener('mousemove', (e) => {
-            const rect = el.getBoundingClientRect();
-            const x = (e.clientX - (rect.left + rect.width/2)) * 0.15;
-            const y = (e.clientY - (rect.top + rect.height/2)) * 0.15;
-            el.style.transform = `translate(${x}px, ${y}px)`;
-        });
-        el.addEventListener('mouseleave', () => el.style.transform = 'translate(0, 0)');
-    });
 </script>
 </body>
 </html>
