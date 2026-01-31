@@ -81,7 +81,7 @@ body {
   min-height: 100vh;
   display: flex; justify-content: center; align-items: flex-start;
   transition: background 0.5s ease, color 0.5s ease;
-  overflow-x: hidden; /* 防止水平滾動 */
+  overflow-x: hidden;
 }
 
 .container {
@@ -105,13 +105,12 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
 .warning-text { color: #ff6b6b; font-weight: 600; margin-bottom: 15px; font-size: 0.9em; }
 [data-theme="dark"] .warning-text { color: #ff8787; }
 
-/* 輸入框優化：iOS上字體必須至少16px才不會縮放 */
 #wordInput {
   width: 100%; min-height: 150px; padding: 20px;
   border-radius: 24px; border: 1px solid var(--glass-border);
   background: rgba(255,255,255,0.15); 
   color: var(--text-color); 
-  font-size: 16px; /* iOS Fix: 防止縮放 */
+  font-size: 16px; 
   line-height: 1.6;
   outline: none; transition: 0.3s;
   box-shadow: inset 2px 2px 10px rgba(0,0,0,0.05); 
@@ -140,7 +139,7 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
   display: flex; align-items: center; gap: 8px;
   position: relative; overflow: hidden;
-  touch-action: manipulation; /* Mobile Fix: 提升點擊反應 */
+  touch-action: manipulation;
   cursor: pointer;
 }
 
@@ -161,7 +160,6 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
   box-shadow: 0 10px 25px rgba(66, 133, 244, 0.25);
 }
 
-/* 僅在支援 hover 的裝置上啟用懸停特效 */
 @media (hover: hover) {
   .search-button:hover {
     transform: translateY(-4px) scale(1.02);
@@ -209,7 +207,6 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
   pointer-events: none;
   height: 0; overflow: hidden;
 }
-
 #statusBoard.active {
   opacity: 1; transform: translateY(0); pointer-events: auto; height: auto; margin-bottom: 10px;
 }
@@ -236,7 +233,7 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
     background: rgba(255,255,255,0.2); border: none; color: currentColor;
     padding: 5px 10px; border-radius: 12px; font-size: 0.9em; cursor: pointer;
     outline: none; backdrop-filter: blur(5px);
-    appearance: none; -webkit-appearance: none; /* iOS Fix */
+    appearance: none; -webkit-appearance: none; 
 }
 .weather-city-select option { background: #fff; color: #333; }
 .weather-advice { padding: 0 25px 25px 25px; font-size: 0.95em; font-weight: 500; display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; }
@@ -265,10 +262,9 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
   -webkit-backdrop-filter: var(--cursor-backdrop);
   border: var(--cursor-border); border-radius: 50%;
   box-shadow: var(--cursor-shadow);
-  display: none; /* 預設隱藏 */
+  display: none; 
 }
 
-/* 僅在有滑鼠的裝置顯示自定義游標 */
 @media (pointer: fine) {
     #customCursor { display: block; }
     body.hover-active #customCursor {
@@ -309,7 +305,6 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
 @media (min-width: 600px) {
     .flip-unit { width: 50px; height: 70px; font-size: 40px; line-height: 70px; border-radius: 8px; }
 }
-
 .flip-top, .flip-bottom, .flip-leaf-front, .flip-leaf-back {
   position: absolute; left: 0; width: 100%; height: 50%;
   overflow: hidden; background: var(--flip-bg); backface-visibility: hidden; 
@@ -360,7 +355,7 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
 }
 
 /* =======================
-   8. Language Menu
+   8. Language Menu (Modified for more items)
    ======================= */
 @keyframes liquidMorphOpen {
   0% { opacity: 0; transform: scale(0.2) translate(100px, 100px); border-radius: 50%; }
@@ -384,10 +379,14 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
   position: fixed; bottom: 100px; right: 30px;
   background: var(--glass-bg); backdrop-filter: blur(20px);
   padding: 10px; 
-  border-radius: 50%; border: 1px solid var(--glass-border);
+  border-radius: 20px; /* 稍微圓一點 */
+  border: 1px solid var(--glass-border);
   display: none; flex-direction: column; gap: 5px;
   box-shadow: var(--glass-shadow); z-index: 999;
   transform-origin: bottom right;
+  /* 增加卷軸設定，避免選項過多超出畫面 */
+  max-height: 60vh;
+  overflow-y: auto;
 }
 
 #langMenu.active {
@@ -405,7 +404,6 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
 /* RWD Layout */
 @media (max-width: 900px) {
   .container { grid-template-columns: 1fr; }
-  /* 在手機上改回系統游標，避免透明鼠標 */
   * { cursor: auto !important; }
 }
 </style>
@@ -416,12 +414,18 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
 
 <div id="langFab" class="interactive">🌐</div>
 <div id="langMenu">
-  <div class="lang-opt interactive" data-lang="zh-TW">繁體中文</div>
   <div class="lang-opt interactive" data-lang="en">English</div>
+  <div class="lang-opt interactive" data-lang="zh-TW">繁體中文</div>
+  <div class="lang-opt interactive" data-lang="zh-CN">简体中文</div>
   <div class="lang-opt interactive" data-lang="ja">日本語</div>
   <div class="lang-opt interactive" data-lang="ko">한국어</div>
-  <div class="lang-opt interactive" data-lang="zh-CN">简体中文</div>
-  <div class="lang-opt interactive" data-lang="fr">Français</div>
+  <div class="lang-opt interactive" data-lang="es">Español</div>
+  <div class="lang-opt interactive" data-lang="pt">Português</div>
+  <div class="lang-opt interactive" data-lang="vi">Tiếng Việt</div>
+  <div class="lang-opt interactive" data-lang="bn">বাংলা</div>
+  <div class="lang-opt interactive" data-lang="hi">हिन्दी</div>
+  <div class="lang-opt interactive" data-lang="ru">Русский</div>
+  <div class="lang-opt interactive" data-lang="yue">粵語</div>
 </div>
 
 <div class="container">
@@ -575,12 +579,10 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
 
 <script>
 // ===================================
-// 1. Cursor & Interaction (Mobile Safe)
+// 1. Cursor & Interaction
 // ===================================
 const cursor = document.getElementById('customCursor');
 let mouseX = 0, mouseY = 0, cursorX = 0, cursorY = 0;
-
-// 只在非觸控裝置上執行游標跟隨
 const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
 if (!isTouchDevice) {
@@ -601,7 +603,7 @@ if (!isTouchDevice) {
 }
 
 function initInteractive() {
-    if(isTouchDevice) return; // 手機不執行磁吸效果
+    if(isTouchDevice) return;
     
     document.querySelectorAll('.interactive').forEach(el => {
       el.removeEventListener('mouseenter', null); 
@@ -630,7 +632,7 @@ function initInteractive() {
 initInteractive();
 
 // ===================================
-// 2. Search Engine Functions (Backgroun Open Fix)
+// 2. Search Engine Functions
 // ===================================
 const DICT_URLS = [
   "https://dictionary.cambridge.org/zht/%E8%A9%9E%E5%85%B8/%E8%8B%B1%E8%AA%9E-%E6%BC%A2%E8%AA%9E-%E7%B9%81%E9%AB%94/",
@@ -666,7 +668,6 @@ function updateStatus(total, opened, remain, timer = '--') {
     stTimer.textContent = timer;
 }
 
-// 核心批次處理邏輯 (模擬背景開啟)
 async function processBatch(type) {
     const list = getLines();
     const total = list.length;
@@ -705,9 +706,6 @@ async function processBatch(type) {
             url = DICT_URLS[1] + w.replace(/\s/g, '+') + "&hidden_codepage=01";
         }
 
-        // ============================================
-        // FIX: 嘗試背景開啟的核心邏輯
-        // ============================================
         const win = window.open(url, '_blank');
         if (win) {
             try { win.blur(); } catch(e){}
@@ -717,7 +715,6 @@ async function processBatch(type) {
             alert("⚠️ 瀏覽器攔截了彈出視窗，請允許本網站開啟彈出視窗。");
             break;
         }
-        // ============================================
 
         openedCount++;
         const remain = total - openedCount;
@@ -839,7 +836,7 @@ setInterval(renderClock, 1000);
 renderClock();
 
 // ===================================
-// 4. Weather Module (Enhanced Logic)
+// 4. Weather Module (With Wind & UV)
 // ===================================
 const weatherCard = document.getElementById('weatherCard');
 const citySelect = document.getElementById('citySelect');
@@ -848,37 +845,27 @@ function toggleWeather() {
     weatherCard.classList.toggle('expanded');
 }
 
-// 根據 Apple Weather SF Symbols 分類對照表
 function getWeatherInfo(code, isDay = 1) {
-    // 1. 晴朗與多雲系列 (Sky Conditions)
     if(code === 0) return { icon: isDay ? 'ph-sun' : 'ph-moon', text: '晴朗' };
     if(code === 1) return { icon: isDay ? 'ph-sun' : 'ph-moon-stars', text: '大致晴朗' };
     if(code === 2) return { icon: isDay ? 'ph-cloud-sun' : 'ph-cloud-moon', text: '局部多雲' };
     if(code === 3) return { icon: 'ph-cloud', text: '陰天' };
-
-    // 4. 大氣與視線系列 (Atmosphere) - 優先順序調整
-    if(code === 45) return { icon: 'ph-waves', text: '有霧' }; // Fog
+    if(code === 45) return { icon: 'ph-waves', text: '有霧' }; 
     if(code === 48) return { icon: 'ph-snowflake', text: '霧淞' }; 
-
-    // 2. 降雨系列 (Rain)
-    if(code >= 51 && code <= 55) return { icon: 'ph-cloud-rain', text: '毛毛雨' }; // Drizzle
-    if(code >= 61 && code <= 65) return { icon: 'ph-cloud-rain', text: '下雨' }; // Rain
-    if(code >= 66 && code <= 67) return { icon: 'ph-cloud-snow', text: '雨夾雪' }; // Freezing Rain
-    if(code >= 80 && code <= 82) return { icon: 'ph-cloud-rain', text: '陣雨' }; // Showers
-    if(code >= 95) return { icon: 'ph-cloud-lightning', text: '雷雨' }; // Thunderstorm
-
-    // 3. 下雪與冰凍系列 (Snow & Ice)
+    if(code >= 51 && code <= 55) return { icon: 'ph-cloud-rain', text: '毛毛雨' }; 
+    if(code >= 61 && code <= 65) return { icon: 'ph-cloud-rain', text: '下雨' }; 
+    if(code >= 66 && code <= 67) return { icon: 'ph-cloud-snow', text: '雨夾雪' }; 
+    if(code >= 80 && code <= 82) return { icon: 'ph-cloud-rain', text: '陣雨' }; 
+    if(code >= 95) return { icon: 'ph-cloud-lightning', text: '雷雨' }; 
     if(code >= 71 && code <= 77) return { icon: 'ph-snowflake', text: '下雪' };
     if(code >= 85 && code <= 86) return { icon: 'ph-snowflake', text: '陣雪' };
 
     return { icon: 'ph-question', text: '未知天氣' };
 }
 
-// 新增：進階天氣建議生成邏輯 (Temperature + Code + Wind + UV)
 function generateWeatherAdvice(temp, code, windSpeed, uvIndex) {
     let advice = [];
     
-    // A. 基礎溫度判斷
     if (temp >= 35) advice.push("🌡️ 極端高溫！請避免長時間待在戶外，多補充水分以防中暑。");
     else if (temp >= 30) advice.push("天氣炎熱，穿著透氣衣物，注意水分補充。");
     else if (temp >= 24 && temp < 30) advice.push("氣溫舒適，適合穿著輕便衣物。");
@@ -886,7 +873,6 @@ function generateWeatherAdvice(temp, code, windSpeed, uvIndex) {
     else if (temp >= 10 && temp < 18) advice.push("天氣偏冷，請穿著夾克或大衣。");
     else if (temp < 10) advice.push("❄️ 嚴寒天氣，請務必穿著羽絨衣，戴上圍巾手套保暖。");
 
-    // B. 降雨與特殊天氣判斷
     const rainCodes = [51,53,55,61,63,65,80,81,82,95,96,99];
     const snowCodes = [71,73,75,77,85,86];
     const fogCodes = [45, 48];
@@ -901,19 +887,16 @@ function generateWeatherAdvice(temp, code, windSpeed, uvIndex) {
         advice.push("🌫️ 霧氣濃厚，能見度低，開車騎車請開大燈並放慢速度。");
     }
 
-    // C. 風速判斷 (Atmosphere)
     if (windSpeed > 30) {
         advice.push("🌬️ 外面風很大，體感溫度會更低，建議穿著防風外套。");
     }
 
-    // D. 紫外線判斷 (Clear Sky)
     if (uvIndex >= 8 && !rainCodes.includes(code)) {
         advice.push("☀️ 紫外線極強 (Extreme)，請務必戴帽、墨鏡並塗抹防曬。");
     } else if (uvIndex >= 6 && !rainCodes.includes(code)) {
         advice.push("😎 紫外線偏高，外出建議做好防曬措施。");
     }
 
-    // E. 若無特殊狀況且天氣好
     if (advice.length <= 1 && code <= 2) {
         advice.push("天氣晴朗，是個適合外出的好天氣！");
     }
@@ -946,7 +929,6 @@ async function fetchWeather() {
     }
 }
 
-// 更新 API URL，增加 windspeed_10m
 async function getWeatherData(lat, lon) {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code,is_day,windspeed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=auto`;
     try {
@@ -965,35 +947,30 @@ function renderWeather(data) {
     const daily = data.daily;
     const info = getWeatherInfo(current.weather_code, current.is_day);
     
-    // 基本資訊
     document.getElementById('weatherTemp').textContent = `${Math.round(current.temperature_2m)}°`;
     document.getElementById('weatherFeels').textContent = `體感 ${Math.round(current.apparent_temperature)}°`;
     document.getElementById('weatherDesc').textContent = info.text;
     document.getElementById('weatherIcon').className = `ph ${info.icon} weather-icon-lg`;
     
-    // 詳細數據
     const uvMax = daily.uv_index_max[0];
     const windKmh = current.windspeed_10m;
     document.getElementById('uvIndex').textContent = uvMax;
     document.getElementById('windSpeed').textContent = `${windKmh} km/h`;
 
-    // 太陽時間
     const sunrise = new Date(daily.sunrise[0]).toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'});
     const sunset = new Date(daily.sunset[0]).toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'});
     document.getElementById('sunTime').textContent = `${sunrise} / ${sunset}`;
 
-    // 生成智慧建議
     const adviceText = generateWeatherAdvice(current.temperature_2m, current.weather_code, windKmh, uvMax);
     document.getElementById('clothingAdvice').innerHTML = adviceText;
 
-    // 未來預報渲染
     const grid = document.getElementById('forecastGrid');
     grid.innerHTML = '';
     const days = ['日','一','二','三','四','五','六'];
     
     for(let i=0; i<7; i++) {
         const date = new Date(daily.time[i]);
-        const dInfo = getWeatherInfo(daily.weather_code[i], 1); // 預報皆顯示日間圖示
+        const dInfo = getWeatherInfo(daily.weather_code[i], 1); 
         const dayName = i === 0 ? '今日' : days[date.getDay()];
         
         grid.innerHTML += `
@@ -1008,7 +985,7 @@ function renderWeather(data) {
 }
 
 citySelect.addEventListener('change', fetchWeather);
-setInterval(fetchWeather, 300000); // 5分鐘更新一次
+setInterval(fetchWeather, 300000); 
 fetchWeather();
 
 // ===================================
@@ -1099,21 +1076,16 @@ function handleDrag(clientX, clientY) {
   updateRing(sec);
 }
 
-// Mobile/Desktop Event Listeners
 ringOverlay.addEventListener('mousedown', (e) => startDrag(e.clientX, e.clientY));
 document.addEventListener('mouseup', () => { isDragging = false; });
-
-// Touch Events for Mobile
 ringOverlay.addEventListener('touchstart', (e) => { 
     e.preventDefault(); 
     startDrag(e.touches[0].clientX, e.touches[0].clientY); 
 }, {passive: false});
-
 ringOverlay.addEventListener('touchmove', (e) => { 
     e.preventDefault(); 
     if(isDragging) handleDrag(e.touches[0].clientX, e.touches[0].clientY); 
 }, {passive: false});
-
 document.addEventListener('touchend', () => { isDragging = false; });
 
 startBtn.addEventListener('click', () => {
@@ -1159,16 +1131,22 @@ themeBtn.addEventListener('click', () => {
 });
 
 // ===================================
-// 7. Language Menu
+// 7. Language Menu (Expanded)
 // ===================================
 let currLang = "zh-TW";
 const STRINGS = {
   "zh-TW": { title: "全能批次搜尋控制台", subtitle: "整合搜尋引擎、字典與實用工具的中心", warning: "⚠️ 若無法開啟，請檢查瀏覽器是否「阻擋彈出視窗」", cambridge: "劍橋詞典", dreye: "譯典通", googleweb: "Google / 網頁", usage: "🎯 使用說明：", tip1: "支援多行輸入，紫色按鈕可一鍵全開。", tip2: "點擊天氣卡片可展開查看詳細資訊。", tip3: "番茄鐘慢速拖曳可微調時間，快速拖曳可大幅調整。", dragTip: "拖曳調整", start: "開始", pause: "暫停", reset: "重置" },
+  "zh-CN": { title: "全能批量搜索控制台", subtitle: "整合搜索引擎、词典与实用工具的中心", warning: "⚠️ 若无法开启，请检查“弹出式窗口”设置", cambridge: "剑桥词典", dreye: "译典通", googleweb: "Google / 网页", usage: "🎯 使用说明：", tip1: "支持多行。紫色按钮一键全开。", tip2: "点击天气卡片可展开查看详细信息。", tip3: "番茄钟慢速拖拽可微调时间，快速拖拽可大幅调整。", dragTip: "拖拽调整", start: "开始", pause: "暂停", reset: "重置" },
   "en": { title: "Batch Search Console", subtitle: "Search Engine, Dictionary, and Utilities Hub", warning: "⚠️ If blocked, please check your popup blocker settings.", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 Usage:", tip1: "Multi-line supported. Purple button opens all.", tip2: "Click weather card to expand details.", tip3: "Slow drag timer for precision, fast for speed.", dragTip: "Drag to set", start: "Start", pause: "Pause", reset: "Reset" },
   "ja": { title: "全能一括検索コンソール", subtitle: "検索・辞書・ツールの統合ハブ", warning: "⚠️ ポップアップがブロックされていないか確認してください", cambridge: "ケンブリッジ", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 使い方：", tip1: "複数行対応。紫ボタンで一括表示。", tip2: "天気カードをクリックして詳細表示。", tip3: "タイマーはゆっくりドラッグで微調整可能。", dragTip: "ドラッグ設定", start: "開始", pause: "一時停止", reset: "リセット" },
   "ko": { title: "다기능 일괄 검색 콘솔", subtitle: "검색 엔진, 사전 및 유틸리티 허브", warning: "⚠️ 팝업 차단 설정을 확인해 주세요", cambridge: "캠브리지", dreye: "Dr.eye", googleweb: "Google / 웹", usage: "🎯 사용법:", tip1: "여러 줄 지원. 보라색 버튼은 모두 엽니다.", tip2: "날씨 카드를 클릭하여 세부 정보 확인.", tip3: "타이머를 천천히 드래그하여 미세 조정.", dragTip: "드래그 설정", start: "시작", pause: "일시정지", reset: "초기화" },
-  "zh-CN": { title: "全能批量搜索控制台", subtitle: "整合搜索引擎、词典与实用工具的中心", warning: "⚠️ 若无法开启，请检查“弹出式窗口”设置", cambridge: "剑桥词典", dreye: "译典通", googleweb: "Google / 网页", usage: "🎯 使用说明：", tip1: "支持多行。紫色按钮一键全开。", tip2: "点击天气卡片可展开查看详细信息。", tip3: "番茄钟慢速拖拽可微调时间，快速拖拽可大幅调整。", dragTip: "拖拽调整", start: "开始", pause: "暂停", reset: "重置" },
-  "fr": { title: "Console de Recherche", subtitle: "Moteur de recherche, Dictionnaire et Utilitaires", warning: "⚠️ Si bloqué, vérifiez les pop-ups.", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 Emploi:", tip1: "Multiligne OK. Bouton violet ouvre tout.", tip2: "Cliquez sur la météo pour voir les détails.", tip3: "Glissez lentement pour plus de précision.", dragTip: "Glisser", start: "Démarrer", pause: "Pause", reset: "Réinitialiser" }
+  "es": { title: "Consola de Búsqueda", subtitle: "Motor de búsqueda, Diccionario y Utilidades", warning: "⚠️ Si falla, verifica las ventanas emergentes", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 Uso:", tip1: "Soporte multilínea. El botón violeta abre todo.", tip2: "Click en clima para detalles.", tip3: "Arrastre lento para precisión, rápido para velocidad.", dragTip: "Arrastrar", start: "Inicio", pause: "Pausa", reset: "Reiniciar" },
+  "pt": { title: "Console de Busca", subtitle: "Motor de busca, Dicionário e Utilidades", warning: "⚠️ Se falhar, verifique os pop-ups", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 Uso:", tip1: "Suporte multilinha. Botão roxo abre tudo.", tip2: "Clique no clima para detalhes.", tip3: "Arraste lento para precisão, rápido para velocidade.", dragTip: "Arrastar", start: "Iniciar", pause: "Pausa", reset: "Redefinir" },
+  "vi": { title: "Bảng Tìm Kiếm", subtitle: "Công cụ tìm kiếm, Từ điển & Tiện ích", warning: "⚠️ Nếu lỗi, hãy kiểm tra chặn pop-up", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 Hướng dẫn:", tip1: "Hỗ trợ nhiều dòng. Nút tím mở tất cả.", tip2: "Nhấn vào thẻ thời tiết để xem chi tiết.", tip3: "Kéo chậm để chỉnh kỹ, kéo nhanh để chỉnh nhanh.", dragTip: "Kéo", start: "Bắt đầu", pause: "Tạm dừng", reset: "Đặt lại" },
+  "bn": { title: "ব্যাচ অনুসন্ধান কনসোল", subtitle: "সার্চ ইঞ্জিন, অভিধান এবং ইউটিলিটি হাব", warning: "⚠️ পপ-আপ ব্লকার সেটিংস চেক করুন", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 ব্যবহার:", tip1: "বেগুনি বোতাম সব খোলে।", tip2: "বিস্তারিত দেখতে আবহাওয়া কার্ডে ক্লিক করুন।", tip3: "টাইমার সেট করতে ড্র্যাগ করুন।", dragTip: "ড্র্যাগ করুন", start: "শুরু", pause: "বিরতি", reset: "রিসেট" },
+  "hi": { title: "बैच खोज कंसोल", subtitle: "खोज इंजन, शब्दकोश और उपयोगिता", warning: "⚠️ पॉप-अप अवरोधक की जाँच करें", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 उपयोग:", tip1: "बैंगनी बटन सब खोलता है।", tip2: "विवरण के लिए मौसम कार्ड पर क्लिक करें।", tip3: "टाइमर सेट करने के लिए खींचें।", dragTip: "खींचें", start: "शुरू", pause: "विराम", reset: "रीसेट" },
+  "ru": { title: "Консоль Поиска", subtitle: "Поиск, словари и утилиты", warning: "⚠️ Проверьте блокировку всплывающих окон", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 Инфо:", tip1: "Мультистрока. Фиолетовая кнопка открывает всё.", tip2: "Нажмите на погоду для деталей.", tip3: "Медленно тяните для точности, быстро для скорости.", dragTip: "Тянуть", start: "Старт", pause: "Пауза", reset: "Сброс" },
+  "yue": { title: "全能批量搜尋控制台", subtitle: "整合搜尋引擎、字典同實用工具嘅中心", warning: "⚠️ 如果開唔到，請檢查瀏覽器有無擋彈出視窗", cambridge: "劍橋詞典", dreye: "譯典通", googleweb: "Google / 網頁", usage: "🎯 使用說明：", tip1: "支援多行輸入，紫色掣一次開晒。", tip2: "點擊天氣卡可以睇詳細資訊。", tip3: "番茄鐘慢拖微調，快拖大幅調整。", dragTip: "拖曳調整", start: "開始", pause: "暫停", reset: "重置" }
 };
 
 const langMenu = document.getElementById('langMenu');
