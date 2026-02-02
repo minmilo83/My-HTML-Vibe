@@ -193,27 +193,29 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
 }
 
 /* =======================
-   3.5 Status Board
+   3.5 Status Board (Updated for Time)
    ======================= */
 #statusBoard {
-  margin-top: 15px; padding: 10px 20px;
-  background: rgba(255,255,255,0.2);
+  margin-top: 15px; padding: 12px 25px;
+  background: rgba(255,255,255,0.25);
   border: 1px solid var(--glass-border);
-  border-radius: 12px;
-  display: flex; align-items: center; justify-content: space-between;
+  border-radius: 16px;
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
   font-size: 0.9em; font-weight: 500;
   opacity: 0; transform: translateY(-10px);
   transition: all 0.3s ease;
   pointer-events: none;
   height: 0; overflow: hidden;
+  text-align: center;
 }
 #statusBoard.active {
   opacity: 1; transform: translateY(0); pointer-events: auto; height: auto; margin-bottom: 10px;
 }
-.status-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.status-label { font-size: 0.8em; opacity: 0.7; }
+.status-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.status-label { font-size: 0.75em; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.5px; }
 .status-val { font-weight: 700; font-size: 1.1em; font-variant-numeric: tabular-nums; }
-.status-timer { color: #ff6b6b; font-weight: bold; }
+.status-timer { color: #ff6b6b; }
+.status-total { color: #2ecc71; }
 
 /* =======================
    4. Weather Widget
@@ -355,7 +357,7 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
 }
 
 /* =======================
-   8. Language Menu (Modified for more items)
+   8. Language Menu
    ======================= */
 @keyframes liquidMorphOpen {
   0% { opacity: 0; transform: scale(0.2) translate(100px, 100px); border-radius: 50%; }
@@ -379,12 +381,11 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
   position: fixed; bottom: 100px; right: 30px;
   background: var(--glass-bg); backdrop-filter: blur(20px);
   padding: 10px; 
-  border-radius: 20px; /* 稍微圓一點 */
+  border-radius: 20px;
   border: 1px solid var(--glass-border);
   display: none; flex-direction: column; gap: 5px;
   box-shadow: var(--glass-shadow); z-index: 999;
   transform-origin: bottom right;
-  /* 增加卷軸設定，避免選項過多超出畫面 */
   max-height: 60vh;
   overflow-y: auto;
 }
@@ -445,20 +446,16 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
 
     <div id="statusBoard">
         <div class="status-item">
-            <span class="status-label">總共</span>
-            <span class="status-val" id="stTotal">0</span>
+            <span class="status-label" data-i18n="statusProgress">進度</span>
+            <span class="status-val" id="stProgress">0 / 0</span>
         </div>
         <div class="status-item">
-            <span class="status-label">已開</span>
-            <span class="status-val" id="stOpened">0</span>
+            <span class="status-label" data-i18n="timeTotal">預計總時</span>
+            <span class="status-val status-total" id="stTotalTime">--</span>
         </div>
         <div class="status-item">
-            <span class="status-label">剩餘</span>
-            <span class="status-val" id="stRemain">0</span>
-        </div>
-        <div class="status-item">
-            <span class="status-label">下一個</span>
-            <span class="status-val status-timer" id="stTimer">--</span>
+            <span class="status-label" data-i18n="timeLeft">剩餘時間</span>
+            <span class="status-val status-timer" id="stRemainTime">--</span>
         </div>
     </div>
 
@@ -632,7 +629,7 @@ function initInteractive() {
 initInteractive();
 
 // ===================================
-// 2. Search Engine Functions
+// 2. Search Engine Functions & Logic
 // ===================================
 const DICT_URLS = [
   "https://dictionary.cambridge.org/zht/%E8%A9%9E%E5%85%B8/%E8%8B%B1%E8%AA%9E-%E6%BC%A2%E8%AA%9E-%E7%B9%81%E9%AB%94/",
@@ -641,10 +638,9 @@ const DICT_URLS = [
 const YOUTUBE_URL = "https://www.youtube.com/results?search_query=";
 
 const statusBoard = document.getElementById('statusBoard');
-const stTotal = document.getElementById('stTotal');
-const stOpened = document.getElementById('stOpened');
-const stRemain = document.getElementById('stRemain');
-const stTimer = document.getElementById('stTimer');
+const stProgress = document.getElementById('stProgress');
+const stTotalTime = document.getElementById('stTotalTime');
+const stRemainTime = document.getElementById('stRemainTime');
 
 function getLines() {
     const input = document.getElementById('wordInput').value.trim();
@@ -660,12 +656,18 @@ function randomRange(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function updateStatus(total, opened, remain, timer = '--') {
+function formatTime(seconds) {
+    if (seconds < 60) return `${seconds.toFixed(0)}s`;
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}m ${s}s`;
+}
+
+function updateStatus(opened, total, estTotalSec, remainSec) {
     statusBoard.classList.add('active');
-    stTotal.textContent = total;
-    stOpened.textContent = opened;
-    stRemain.textContent = remain;
-    stTimer.textContent = timer;
+    stProgress.textContent = `${opened} / ${total}`;
+    stTotalTime.textContent = formatTime(estTotalSec);
+    stRemainTime.textContent = remainSec <= 0 ? '完成' : formatTime(remainSec);
 }
 
 async function processBatch(type) {
@@ -674,28 +676,37 @@ async function processBatch(type) {
     
     if (total === 0) return;
 
-    if (total > 5 && isTouchDevice) {
-        alert("⚠️ 提醒：在手機上批量開啟大量分頁可能會被瀏覽器阻擋。請留意彈出視窗警告。");
+    if (total > 10 && isTouchDevice) {
+        alert("⚠️ 提醒：在手機上批量開啟大量分頁可能會被瀏覽器阻擋。");
     }
 
     let openedCount = 0;
-    updateStatus(total, 0, total);
-
-    let delayMin = 200, delayMax = 200;
-    if (total <= 10) {
-        delayMin = 200; delayMax = 300;
-    } else if (total <= 30) {
-        delayMin = 1000; delayMax = 3000;
+    
+    // --- 調整開啟間隔的邏輯 (New Interval Logic) ---
+    let delayMin, delayMax;
+    
+    if (total <= 30) {
+        delayMin = 200; delayMax = 300; // 30個以內：維持現狀 (快)
+    } else if (total <= 75) {
+        delayMin = 1000; delayMax = 3000; // 31-75個：1~3秒
     } else {
-        delayMin = 9000; delayMax = 11000;
+        delayMin = 9000; delayMax = 11000; // >75個：9~11秒
     }
+
+    // 計算預計總時間 (Estimated Total Time)
+    // 使用平均延遲時間來估算： (min+max)/2 * (total items)
+    const avgDelayMs = (delayMin + delayMax) / 2;
+    const estTotalSec = (total * avgDelayMs) / 1000;
+
+    updateStatus(0, total, estTotalSec, estTotalSec);
 
     for (let i = 0; i < total; i++) {
         const w = list[i];
         let url = "";
 
         if (type === 'web') {
-            const isUrl = w.match(/^(http|https):\/\//i) || w.match(/^www\./i) || w.includes('.com') || w.includes('.org') || w.includes('.net') || w.includes('.tw');
+            // 自動偵測網址或搜尋 (Auto Detect URL)
+            const isUrl = w.match(/^(http|https):\/\//i) || w.match(/^www\./i) || w.includes('.com') || w.includes('.org') || w.includes('.net') || w.includes('.tw') || w.includes('.io');
             if (isUrl) url = w.match(/^(http|https):\/\//i) ? w : 'http://' + w;
             else url = "https://www.google.com/search?q=" + encodeURIComponent(w);
         } else if (type === 'youtube') {
@@ -717,18 +728,25 @@ async function processBatch(type) {
         }
 
         openedCount++;
-        const remain = total - openedCount;
+        const remainCount = total - openedCount;
         
-        if (remain > 0) {
+        // 更新剩餘時間估算
+        const remainSec = (remainCount * avgDelayMs) / 1000;
+        
+        if (remainCount > 0) {
             let delay = randomRange(delayMin, delayMax);
             let steps = 10;
             let stepTime = delay / steps;
+            
+            // 倒數動畫
             for(let t=steps; t>0; t--) {
-                updateStatus(total, openedCount, remain, (t * stepTime / 1000).toFixed(1) + 's');
+                // 顯示的剩餘時間 = (剩餘項目預估時間) + (當前項目Delay剩餘時間)
+                const currentDelayLeft = (t * stepTime) / 1000;
+                updateStatus(openedCount, total, estTotalSec, remainSec + currentDelayLeft);
                 await wait(stepTime);
             }
         } else {
-            updateStatus(total, openedCount, 0, '完成');
+            updateStatus(openedCount, total, estTotalSec, 0);
             setTimeout(() => {
                 statusBoard.classList.remove('active');
             }, 3000);
@@ -1131,22 +1149,22 @@ themeBtn.addEventListener('click', () => {
 });
 
 // ===================================
-// 7. Language Menu (Expanded)
+// 7. Language Menu (Modified for more items)
 // ===================================
 let currLang = "zh-TW";
 const STRINGS = {
-  "zh-TW": { title: "全能批次搜尋控制台", subtitle: "整合搜尋引擎、字典與實用工具的中心", warning: "⚠️ 若無法開啟，請檢查瀏覽器是否「阻擋彈出視窗」", cambridge: "劍橋詞典", dreye: "譯典通", googleweb: "Google / 網頁", usage: "🎯 使用說明：", tip1: "支援多行輸入，紫色按鈕可一鍵全開。", tip2: "點擊天氣卡片可展開查看詳細資訊。", tip3: "番茄鐘慢速拖曳可微調時間，快速拖曳可大幅調整。", dragTip: "拖曳調整", start: "開始", pause: "暫停", reset: "重置" },
-  "zh-CN": { title: "全能批量搜索控制台", subtitle: "整合搜索引擎、词典与实用工具的中心", warning: "⚠️ 若无法开启，请检查“弹出式窗口”设置", cambridge: "剑桥词典", dreye: "译典通", googleweb: "Google / 网页", usage: "🎯 使用说明：", tip1: "支持多行。紫色按钮一键全开。", tip2: "点击天气卡片可展开查看详细信息。", tip3: "番茄钟慢速拖拽可微调时间，快速拖拽可大幅调整。", dragTip: "拖拽调整", start: "开始", pause: "暂停", reset: "重置" },
-  "en": { title: "Batch Search Console", subtitle: "Search Engine, Dictionary, and Utilities Hub", warning: "⚠️ If blocked, please check your popup blocker settings.", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 Usage:", tip1: "Multi-line supported. Purple button opens all.", tip2: "Click weather card to expand details.", tip3: "Slow drag timer for precision, fast for speed.", dragTip: "Drag to set", start: "Start", pause: "Pause", reset: "Reset" },
-  "ja": { title: "全能一括検索コンソール", subtitle: "検索・辞書・ツールの統合ハブ", warning: "⚠️ ポップアップがブロックされていないか確認してください", cambridge: "ケンブリッジ", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 使い方：", tip1: "複数行対応。紫ボタンで一括表示。", tip2: "天気カードをクリックして詳細表示。", tip3: "タイマーはゆっくりドラッグで微調整可能。", dragTip: "ドラッグ設定", start: "開始", pause: "一時停止", reset: "リセット" },
-  "ko": { title: "다기능 일괄 검색 콘솔", subtitle: "검색 엔진, 사전 및 유틸리티 허브", warning: "⚠️ 팝업 차단 설정을 확인해 주세요", cambridge: "캠브리지", dreye: "Dr.eye", googleweb: "Google / 웹", usage: "🎯 사용법:", tip1: "여러 줄 지원. 보라색 버튼은 모두 엽니다.", tip2: "날씨 카드를 클릭하여 세부 정보 확인.", tip3: "타이머를 천천히 드래그하여 미세 조정.", dragTip: "드래그 설정", start: "시작", pause: "일시정지", reset: "초기화" },
-  "es": { title: "Consola de Búsqueda", subtitle: "Motor de búsqueda, Diccionario y Utilidades", warning: "⚠️ Si falla, verifica las ventanas emergentes", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 Uso:", tip1: "Soporte multilínea. El botón violeta abre todo.", tip2: "Click en clima para detalles.", tip3: "Arrastre lento para precisión, rápido para velocidad.", dragTip: "Arrastrar", start: "Inicio", pause: "Pausa", reset: "Reiniciar" },
-  "pt": { title: "Console de Busca", subtitle: "Motor de busca, Dicionário e Utilidades", warning: "⚠️ Se falhar, verifique os pop-ups", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 Uso:", tip1: "Suporte multilinha. Botão roxo abre tudo.", tip2: "Clique no clima para detalhes.", tip3: "Arraste lento para precisão, rápido para velocidade.", dragTip: "Arrastar", start: "Iniciar", pause: "Pausa", reset: "Redefinir" },
-  "vi": { title: "Bảng Tìm Kiếm", subtitle: "Công cụ tìm kiếm, Từ điển & Tiện ích", warning: "⚠️ Nếu lỗi, hãy kiểm tra chặn pop-up", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 Hướng dẫn:", tip1: "Hỗ trợ nhiều dòng. Nút tím mở tất cả.", tip2: "Nhấn vào thẻ thời tiết để xem chi tiết.", tip3: "Kéo chậm để chỉnh kỹ, kéo nhanh để chỉnh nhanh.", dragTip: "Kéo", start: "Bắt đầu", pause: "Tạm dừng", reset: "Đặt lại" },
-  "bn": { title: "ব্যাচ অনুসন্ধান কনসোল", subtitle: "সার্চ ইঞ্জিন, অভিধান এবং ইউটিলিটি হাব", warning: "⚠️ পপ-আপ ব্লকার সেটিংস চেক করুন", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 ব্যবহার:", tip1: "বেগুনি বোতাম সব খোলে।", tip2: "বিস্তারিত দেখতে আবহাওয়া কার্ডে ক্লিক করুন।", tip3: "টাইমার সেট করতে ড্র্যাগ করুন।", dragTip: "ড্র্যাগ করুন", start: "শুরু", pause: "বিরতি", reset: "রিসেট" },
-  "hi": { title: "बैच खोज कंसोल", subtitle: "खोज इंजन, शब्दकोश और उपयोगिता", warning: "⚠️ पॉप-अप अवरोधक की जाँच करें", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 उपयोग:", tip1: "बैंगनी बटन सब खोलता है।", tip2: "विवरण के लिए मौसम कार्ड पर क्लिक करें।", tip3: "टाइमर सेट करने के लिए खींचें।", dragTip: "खींचें", start: "शुरू", pause: "विराम", reset: "रीसेट" },
-  "ru": { title: "Консоль Поиска", subtitle: "Поиск, словари и утилиты", warning: "⚠️ Проверьте блокировку всплывающих окон", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 Инфо:", tip1: "Мультистрока. Фиолетовая кнопка открывает всё.", tip2: "Нажмите на погоду для деталей.", tip3: "Медленно тяните для точности, быстро для скорости.", dragTip: "Тянуть", start: "Старт", pause: "Пауза", reset: "Сброс" },
-  "yue": { title: "全能批量搜尋控制台", subtitle: "整合搜尋引擎、字典同實用工具嘅中心", warning: "⚠️ 如果開唔到，請檢查瀏覽器有無擋彈出視窗", cambridge: "劍橋詞典", dreye: "譯典通", googleweb: "Google / 網頁", usage: "🎯 使用說明：", tip1: "支援多行輸入，紫色掣一次開晒。", tip2: "點擊天氣卡可以睇詳細資訊。", tip3: "番茄鐘慢拖微調，快拖大幅調整。", dragTip: "拖曳調整", start: "開始", pause: "暫停", reset: "重置" }
+  "zh-TW": { title: "全能批次搜尋控制台", subtitle: "整合搜尋引擎、字典與實用工具的中心", warning: "⚠️ 若無法開啟，請檢查瀏覽器是否「阻擋彈出視窗」", cambridge: "劍橋詞典", dreye: "譯典通", googleweb: "Google / 網頁", usage: "🎯 使用說明：", tip1: "支援多行輸入，紫色按鈕可一鍵全開。", tip2: "點擊天氣卡片可展開查看詳細資訊。", tip3: "番茄鐘慢速拖曳可微調時間，快速拖曳可大幅調整。", dragTip: "拖曳調整", start: "開始", pause: "暫停", reset: "重置", statusProgress: "進度", timeTotal: "預計總時", timeLeft: "剩餘時間" },
+  "zh-CN": { title: "全能批量搜索控制台", subtitle: "整合搜索引擎、词典与实用工具的中心", warning: "⚠️ 若无法开启，请检查“弹出式窗口”设置", cambridge: "剑桥词典", dreye: "译典通", googleweb: "Google / 网页", usage: "🎯 使用说明：", tip1: "支持多行。紫色按钮一键全开。", tip2: "点击天气卡片可展开查看详细信息。", tip3: "番茄钟慢速拖拽可微调时间，快速拖拽可大幅调整。", dragTip: "拖拽调整", start: "开始", pause: "暂停", reset: "重置", statusProgress: "进度", timeTotal: "预计总时", timeLeft: "剩余时间" },
+  "en": { title: "Batch Search Console", subtitle: "Search Engine, Dictionary, and Utilities Hub", warning: "⚠️ If blocked, please check your popup blocker settings.", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 Usage:", tip1: "Multi-line supported. Purple button opens all.", tip2: "Click weather card to expand details.", tip3: "Slow drag timer for precision, fast for speed.", dragTip: "Drag to set", start: "Start", pause: "Pause", reset: "Reset", statusProgress: "Progress", timeTotal: "Est. Total", timeLeft: "Time Left" },
+  "ja": { title: "全能一括検索コンソール", subtitle: "検索・辞書・ツールの統合ハブ", warning: "⚠️ ポップアップがブロックされていないか確認してください", cambridge: "ケンブリッジ", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 使い方：", tip1: "複数行対応。紫ボタンで一括表示。", tip2: "天気カードをクリックして詳細表示。", tip3: "タイマーはゆっくりドラッグで微調整可能。", dragTip: "ドラッグ設定", start: "開始", pause: "一時停止", reset: "リセット", statusProgress: "進捗", timeTotal: "予想合計", timeLeft: "残り時間" },
+  "ko": { title: "다기능 일괄 검색 콘솔", subtitle: "검색 엔진, 사전 및 유틸리티 허브", warning: "⚠️ 팝업 차단 설정을 확인해 주세요", cambridge: "캠브리지", dreye: "Dr.eye", googleweb: "Google / 웹", usage: "🎯 사용법:", tip1: "여러 줄 지원. 보라색 버튼은 모두 엽니다.", tip2: "날씨 카드를 클릭하여 세부 정보 확인.", tip3: "타이머를 천천히 드래그하여 미세 조정.", dragTip: "드래그 설정", start: "시작", pause: "일시정지", reset: "초기화", statusProgress: "진행", timeTotal: "예상 총", timeLeft: "남은 시간" },
+  "es": { title: "Consola de Búsqueda", subtitle: "Motor de búsqueda, Diccionario y Utilidades", warning: "⚠️ Si falla, verifica las ventanas emergentes", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 Uso:", tip1: "Soporte multilínea. El botón violeta abre todo.", tip2: "Click en clima para detalles.", tip3: "Arrastre lento para precisión, rápido para velocidad.", dragTip: "Arrastrar", start: "Inicio", pause: "Pausa", reset: "Reiniciar", statusProgress: "Progreso", timeTotal: "Est. Total", timeLeft: "Restante" },
+  "pt": { title: "Console de Busca", subtitle: "Motor de busca, Dicionário e Utilidades", warning: "⚠️ Se falhar, verifique os pop-ups", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 Uso:", tip1: "Suporte multilinha. Botão roxo abre tudo.", tip2: "Clique no clima para detalhes.", tip3: "Arraste lento para precisão, rápido para velocidade.", dragTip: "Arrastar", start: "Iniciar", pause: "Pausa", reset: "Redefinir", statusProgress: "Progresso", timeTotal: "Est. Total", timeLeft: "Restante" },
+  "vi": { title: "Bảng Tìm Kiếm", subtitle: "Công cụ tìm kiếm, Từ điển & Tiện ích", warning: "⚠️ Nếu lỗi, hãy kiểm tra chặn pop-up", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 Hướng dẫn:", tip1: "Hỗ trợ nhiều dòng. Nút tím mở tất cả.", tip2: "Nhấn vào thẻ thời tiết để xem chi tiết.", tip3: "Kéo chậm để chỉnh kỹ, kéo nhanh để chỉnh nhanh.", dragTip: "Kéo", start: "Bắt đầu", pause: "Tạm dừng", reset: "Đặt lại", statusProgress: "Tiến độ", timeTotal: "Dự kiến", timeLeft: "Còn lại" },
+  "bn": { title: "ব্যাচ অনুসন্ধান কনসোল", subtitle: "সার্চ ইঞ্জিন, অভিধান এবং ইউটিলিটি হাব", warning: "⚠️ পপ-আপ ব্লকার সেটিংস চেক করুন", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 ব্যবহার:", tip1: "বেগুনি বোতাম সব খোলে।", tip2: "বিস্তারিত দেখতে আবহাওয়া কার্ডে ক্লিক করুন।", tip3: "টাইমার সেট করতে ড্র্যাগ করুন।", dragTip: "ড্র্যাগ করুন", start: "শুরু", pause: "বিরতি", reset: "রিসেট", statusProgress: "অগ্রগতি", timeTotal: "মোট সময়", timeLeft: "বাকি সময়" },
+  "hi": { title: "बैच खोज कंसोल", subtitle: "खोज इंजन, शब्दकोश और उपयोगिता", warning: "⚠️ पॉप-अप अवरोधक की जाँच करें", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 उपयोग:", tip1: "बैंगनी बटन सब खोलता है।", tip2: "विवरण के लिए मौसम कार्ड पर क्लिक करें।", tip3: "टाइमर सेट करने के लिए खींचें।", dragTip: "खींचें", start: "शुरू", pause: "विराम", reset: "रीसेट", statusProgress: "प्रगति", timeTotal: "कुल समय", timeLeft: "शेष समय" },
+  "ru": { title: "Консоль Поиска", subtitle: "Поиск, словари и утилиты", warning: "⚠️ Проверьте блокировку всплывающих окон", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 Инфо:", tip1: "Мультистрока. Фиолетовая кнопка открывает всё.", tip2: "Нажмите на погоду для деталей.", tip3: "Медленно тяните для точности, быстро для скорости.", dragTip: "Тянуть", start: "Старт", pause: "Пауза", reset: "Сброс", statusProgress: "Прогресс", timeTotal: "Всего", timeLeft: "Осталось" },
+  "yue": { title: "全能批量搜尋控制台", subtitle: "整合搜尋引擎、字典同實用工具嘅中心", warning: "⚠️ 如果開唔到，請檢查瀏覽器有無擋彈出視窗", cambridge: "劍橋詞典", dreye: "譯典通", googleweb: "Google / 網頁", usage: "🎯 使用說明：", tip1: "支援多行輸入，紫色掣一次開晒。", tip2: "點擊天氣卡可以睇詳細資訊。", tip3: "番茄鐘慢拖微調，快拖大幅調整。", dragTip: "拖曳調整", start: "開始", pause: "暫停", reset: "重置", statusProgress: "進度", timeTotal: "預計總時", timeLeft: "剩返時間" }
 };
 
 const langMenu = document.getElementById('langMenu');
@@ -1191,6 +1209,9 @@ function updateLang() {
   document.querySelector('[data-i18n="tip2"]').textContent = s.tip2;
   document.querySelector('[data-i18n="tip3"]').textContent = s.tip3;
   document.querySelector('[data-i18n="dragTip"]').textContent = s.dragTip;
+  document.querySelector('[data-i18n="statusProgress"]').textContent = s.statusProgress;
+  document.querySelector('[data-i18n="timeTotal"]').textContent = s.timeTotal;
+  document.querySelector('[data-i18n="timeLeft"]').textContent = s.timeLeft;
   
   if(!timerId) startBtn.textContent = s.start;
   else startBtn.textContent = s.pause;
