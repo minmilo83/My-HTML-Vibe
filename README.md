@@ -9,7 +9,7 @@
 ## 🔗 數位搬家生態系 (Automation Ecosystem)
 **Omni-Search** 不僅是搜尋工具，它更是搬家流程中的「發動機」。為了實現極致的自動化，請搭配以下工具使用：
 
-* **[YouTube 搬家工具箱 (Migration Tools)](https://github.com/你的用戶名/youtube-migration-tools)** * **角色**：專業手術刀。負責提取網址、比對遺漏、自動按讚與恢復紀錄。
+* **[YouTube 搬家工具箱 (Migration Tools)](https://github.com/minmilo83/youtube-migration-tools))** * **角色**：專業手術刀。負責提取網址、比對遺漏、自動按讚與恢復紀錄。
     * **連動方式**：從工具箱提取 `backup.txt` 後，直接貼入 **Omni-Search V5**，一鍵開啟數十個分頁觸發自動化腳本。
 
 ---
