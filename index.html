@@ -21,6 +21,9 @@
             --cursor-bg: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.02) 10%, transparent 60%);
             --cursor-backdrop: blur(5px) brightness(1.1) saturate(1.2);
             --primary-gradient: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+            --youtube-gradient: linear-gradient(135deg, #ff9966 0%, #ff5e62 100%);
+            --tab-active-bg: #fff;
+            --code-bg: rgba(0,0,0,0.06);
         }
 
         [data-theme="dark"] {
@@ -30,12 +33,19 @@
             --glass-border: rgba(255, 255, 255, 0.1);
             --glass-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
             --btn-bg: rgba(255, 255, 255, 0.08);
+            --tab-active-bg: rgba(255, 255, 255, 0.15);
+            --code-bg: rgba(255,255,255,0.1);
         }
 
         /* =======================
-           2. 基礎樣式
+           2. 基礎樣式 & 隱藏滑鼠
            ======================= */
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+            /* 隱藏系統預設滑鼠，只顯示自定義光圈 */
+            cursor: none !important; 
+        }
         
         body {
             margin: 0; padding: 40px 20px;
@@ -52,7 +62,7 @@
         #customCursor {
             position: fixed; top: 0; left: 0; z-index: 9999;
             width: var(--cursor-size); height: var(--cursor-size);
-            pointer-events: none;
+            pointer-events: none; /* 確保光圈不會擋住點擊 */
             transform: translate(-50%, -50%);
             background: var(--cursor-bg); backdrop-filter: var(--cursor-backdrop);
             border: 1px solid rgba(255,255,255,0.4); border-radius: 50%;
@@ -74,12 +84,48 @@
             width: 100%; max-width: 600px;
             text-align: center; position: relative;
             z-index: 10;
+            overflow: hidden; 
         }
 
         h1 { margin: 0 0 10px 0; font-size: 2.2em; font-weight: 700; }
-        .vibe-badge { font-size: 0.8em; opacity: 0.6; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 30px; }
+        .vibe-badge { font-size: 0.8em; opacity: 0.6; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 20px; display: block;}
 
-        .version-list { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+        /* --- 分頁切換 Tabs --- */
+        .nav-tabs {
+            display: flex; justify-content: center; gap: 10px;
+            margin-bottom: 30px;
+            padding: 5px; background: rgba(0,0,0,0.05);
+            border-radius: 50px; display: inline-flex;
+            border: 1px solid var(--glass-border);
+        }
+        .tab-btn {
+            border: none; background: transparent;
+            padding: 10px 24px; border-radius: 40px;
+            font-size: 0.9em; font-weight: 600;
+            color: var(--text-color); 
+            opacity: 0.6; transition: all 0.3s ease;
+        }
+        .tab-btn.active {
+            background: var(--tab-active-bg);
+            opacity: 1; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .tab-btn:hover { opacity: 0.9; }
+
+        /* --- 頁面容器 --- */
+        .page-container { position: relative; min-height: 400px; }
+        .page { 
+            display: none; 
+            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .page.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- 版本列表項目 --- */
+        .version-list { display: flex; flex-direction: column; gap: 15px; }
         
         .version-item {
             padding: 20px; border-radius: 20px;
@@ -88,8 +134,7 @@
             text-decoration: none; color: var(--text-color);
             display: flex; align-items: center; justify-content: space-between;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            text-align: left;
-            position: relative; overflow: hidden;
+            text-align: left; position: relative; overflow: hidden;
         }
         .version-item:hover {
             transform: translateY(-5px) scale(1.02);
@@ -105,19 +150,58 @@
             padding: 2px 10px; border-radius: 50px; font-size: 11px; font-weight: bold;
             background: var(--primary-gradient); color: white; text-transform: uppercase;
         }
-        .v-tag.legacy { background: linear-gradient(135deg, #bdc3c7 0%, #2c3e50 100%); opacity: 0.6; }
+        .v-tag.yt { background: var(--youtube-gradient); }
 
         .v-icon { font-size: 24px; opacity: 0.5; transition: 0.3s; }
         .version-item:hover .v-icon { opacity: 1; transform: translateX(5px) scale(1.1); color: #a18cd1; }
 
+        /* --- YouTube 手風琴 (Accordion) 樣式 --- */
+        .accordion-item {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);
+            border-radius: 16px; margin-bottom: 15px;
+            overflow: hidden; transition: 0.3s;
+        }
+        .accordion-header {
+            padding: 18px; cursor: pointer; /* 這裡也要加上 cursor: none 其實由 * 覆蓋，但以防萬一 */
+            display: flex; align-items: center; justify-content: space-between;
+            font-weight: bold; font-size: 1em;
+            transition: background 0.2s;
+        }
+        .accordion-header:hover { background: rgba(255,255,255,0.1); }
+        .accordion-header i { font-size: 1.2em; margin-right: 10px; opacity: 0.7; }
+        .arrow-icon { transition: transform 0.3s; font-size: 0.8em; opacity: 0.5; }
+        
+        /* 展開狀態 */
+        .accordion-item.open .arrow-icon { transform: rotate(180deg); opacity: 1; }
+        .accordion-item.open { background: rgba(255,255,255,0.1); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+
+        .accordion-content {
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.4s ease-out, opacity 0.4s;
+            opacity: 0; padding: 0 18px;
+            text-align: left; font-size: 0.9em; line-height: 1.6;
+        }
+        .accordion-item.open .accordion-content {
+            max-height: 600px; /* 增加高度以容納翻譯文字 */
+            opacity: 1; padding: 0 18px 18px 18px;
+        }
+
+        .step-detail { opacity: 0.9; margin-left: 28px; border-left: 2px solid rgba(255,255,255,0.3); padding-left: 15px; margin-top: 5px; }
+        .step-detail strong { color: #a18cd1; font-weight: 700; }
+        .code-box { 
+            background: var(--code-bg); padding: 4px 8px; border-radius: 6px; 
+            font-family: monospace; font-size: 0.9em; border: 1px solid rgba(128,128,128,0.2);
+            display: inline-block; margin: 2px 0;
+        }
+
         /* =======================
-           4. 懸浮按鈕與選單 (已為長列表優化)
+           4. 懸浮按鈕與選單
            ======================= */
         #langFab {
             position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px;
             background: var(--glass-bg); border: 1px solid var(--glass-border);
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 24px; cursor: pointer; backdrop-filter: blur(10px); 
+            font-size: 24px; cursor: none; backdrop-filter: blur(10px); 
             z-index: 1000;
             box-shadow: var(--glass-shadow); transition: transform 0.3s;
         }
@@ -131,14 +215,9 @@
             z-index: 1001;
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
             min-width: 160px;
-            
-            /* 新增：長列表捲動優化 */
-            max-height: 60vh; /* 限制最大高度，避免超出螢幕 */
-            overflow-y: auto; /* 超出時顯示捲軸 */
-            scrollbar-width: thin; /* Firefox */
+            max-height: 60vh; overflow-y: auto; scrollbar-width: thin;
         }
         
-        /* 自定義捲軸樣式 (Chrome/Safari) */
         #langMenu::-webkit-scrollbar { width: 4px; }
         #langMenu::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 4px; }
         
@@ -150,7 +229,7 @@
         }
 
         .lang-opt { 
-            padding: 12px 16px; border-radius: 8px; cursor: pointer; 
+            padding: 12px 16px; border-radius: 8px; cursor: none; 
             font-size: 0.95em; font-weight: 500; transition: 0.2s; 
             color: var(--text-color); display: flex; align-items: center; gap: 10px;
         }
@@ -160,7 +239,7 @@
             position: absolute; top: 20px; right: 20px;
             width: 44px; height: 44px; border-radius: 50%;
             background: var(--btn-bg); border: 1px solid var(--glass-border);
-            color: var(--text-color); font-size: 18px; cursor: pointer;
+            color: var(--text-color); font-size: 18px; cursor: none;
             display: flex; align-items: center; justify-content: center;
             z-index: 20; transition: transform 0.3s;
         }
@@ -189,55 +268,353 @@
 </div>
 
 <div class="glass-card">
-    <div class="vibe-badge">Vibe Coding Journey</div>
-    <h1>Omni-Search Hub</h1>
-    <p>全能批次搜尋控制台：開發歷程紀錄</p>
+    <span class="vibe-badge" data-i18n="badge">Vibe Coding Journey</span>
+    <h1 data-i18n="title">Omni-Search Hub</h1>
+    
+    <div class="nav-tabs">
+        <button class="tab-btn active interactive" onclick="switchTab(0)" data-i18n="tabOmni">Omni-Search</button>
+        <button class="tab-btn interactive" onclick="switchTab(1)" data-i18n="tabEco">YT Ecosystem</button>
+    </div>
 
-    <div class="version-list">
-        <a href="OmniSearch_V5.html" class="version-item interactive">
-            <div class="v-info">
-                <h3>V5 專業全相容版 <span class="v-tag">LATEST</span></h3>
-                <p>Popup 偵測、iOS 16px 適配、阻尼動畫</p>
-            </div>
-            <i class="ph ph-rocket-launch v-icon"></i>
-        </a>
+    <div class="page-container">
+        
+        <div class="page active" id="page-omni">
+            <div class="version-list">
+                <a href="OmniSearch_V5.html" class="version-item interactive">
+                    <div class="v-info">
+                        <h3 data-i18n="v5Title">V5 專業全相容版 <span class="v-tag">LATEST</span></h3>
+                        <p data-i18n="v5Desc">Popup 偵測、iOS 16px 適配、阻尼動畫</p>
+                    </div>
+                    <i class="ph ph-rocket-launch v-icon"></i>
+                </a>
 
-        <a href="OmniSearch_V4.html" class="version-item interactive">
-            <div class="v-info">
-                <h3>V4 全能控制台 <span class="v-tag" style="background:#4ca1af">NEW</span></h3>
-                <p>實時天氣系統、Web 深度搜尋整合</p>
-            </div>
-            <i class="ph ph-cloud-sun v-icon"></i>
-        </a>
+                <a href="OmniSearch_V4.html" class="version-item interactive">
+                    <div class="v-info">
+                        <h3 data-i18n="v4Title">V4 全能控制台 <span class="v-tag" style="background:#4ca1af">NEW</span></h3>
+                        <p data-i18n="v4Desc">實時天氣系統、Web 深度搜尋整合</p>
+                    </div>
+                    <i class="ph ph-cloud-sun v-icon"></i>
+                </a>
 
-        <a href="OmniSearch_V3.html" class="version-item interactive">
-            <div class="v-info">
-                <h3>V3 穩定雙字典版</h3>
-                <p>經典劍橋/譯典通批次邏輯</p>
-            </div>
-            <i class="ph ph-books v-icon"></i>
-        </a>
+                <a href="OmniSearch_V3.html" class="version-item interactive">
+                    <div class="v-info">
+                        <h3 data-i18n="v3Title">V3 穩定雙字典版</h3>
+                        <p data-i18n="v3Desc">經典劍橋/譯典通批次邏輯</p>
+                    </div>
+                    <i class="ph ph-books v-icon"></i>
+                </a>
 
-        <a href="OmniSearch_V2.html" class="version-item interactive">
-            <div class="v-info">
-                <h3>V2 美學處理版</h3>
-                <p>導入深色模式與液態按鈕</p>
-            </div>
-            <i class="ph ph-palette v-icon"></i>
-        </a>
+                <a href="OmniSearch_V2.html" class="version-item interactive">
+                    <div class="v-info">
+                        <h3 data-i18n="v2Title">V2 美學處理版</h3>
+                        <p data-i18n="v2Desc">導入深色模式與液態按鈕</p>
+                    </div>
+                    <i class="ph ph-palette v-icon"></i>
+                </a>
 
-        <a href="OmniSearch_V1.html" class="version-item interactive">
-            <div class="v-info">
-                <h3>V1 原型試驗版</h3>
-                <p>最純粹的批次搜尋功能起點</p>
+                <a href="OmniSearch_V1.html" class="version-item interactive">
+                    <div class="v-info">
+                        <h3 data-i18n="v1Title">V1 原型試驗版</h3>
+                        <p data-i18n="v1Desc">最純粹的批次搜尋功能起點</p>
+                    </div>
+                    <i class="ph ph-test-tube v-icon"></i>
+                </a>
             </div>
-            <i class="ph ph-test-tube v-icon"></i>
-        </a>
+        </div>
+
+        <div class="page" id="page-yt">
+            <p style="margin-bottom: 20px; opacity: 0.8;" data-i18n="ytIntro">配合 Omni-Search 實現極致的自動化搬家體驗。</p>
+
+            <a href="https://github.com/minmilo83/youtube-migration-tools" target="_blank" class="version-item interactive" style="background: rgba(255,0,0,0.08); border-color: rgba(255,0,0,0.2); margin-bottom: 25px;">
+                <div class="v-info">
+                    <h3 data-i18n="downloadTitle">下載搬家工具箱 <span class="v-tag yt">GITHUB</span></h3>
+                    <p data-i18n="downloadDesc">取得核心腳本與備份工具</p>
+                </div>
+                <i class="ph ph-github-logo v-icon" style="color: #333;"></i>
+            </a>
+
+            <div style="text-align: left;">
+                <h4 style="margin-bottom: 15px; padding-left: 5px; opacity: 0.7;" data-i18n="stepHeader">點擊下方步驟查看詳細教學：</h4>
+                
+                <div class="accordion-item interactive" onclick="toggleAccordion(this)">
+                    <div class="accordion-header">
+                        <div data-i18n="s1Title"><i class="ph ph-download-simple"></i> STEP 1: 備份舊清單</div>
+                        <i class="ph ph-caret-down arrow-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="step-detail" data-i18n="s1Content">
+                            <p>1. 登入舊 YouTube 帳號，進入「喜歡的影片」頁面。</p>
+                            <p>2. 按鍵盤 <span class="code-box">F12</span> 打開控制台 (Console)。</p>
+                            <p>3. 複製 <span class="code-box">01-export-playlist.js</span> 內容並執行。</p>
+                            <p>4. 系統會下載 <strong>.txt</strong> 檔案。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item interactive" onclick="toggleAccordion(this)">
+                    <div class="accordion-header">
+                        <div data-i18n="s2Title"><i class="ph ph-play-circle"></i> STEP 2: Omni 批量啟動</div>
+                        <i class="ph ph-caret-down arrow-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="step-detail" data-i18n="s2Content">
+                            <p>1. 切換登入<strong>新帳號</strong>。</p>
+                            <p>2. 打開 <a href="OmniSearch_V5.html" style="color:inherit">Omni-Search V5</a>。</p>
+                            <p>3. 打開 .txt 檔，<strong>全選複製</strong>。</p>
+                            <p>4. 貼入搜尋框，點擊「開始處理」。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item interactive" onclick="toggleAccordion(this)">
+                    <div class="accordion-header">
+                        <div data-i18n="s3Title"><i class="ph ph-robot"></i> STEP 3: 自動化執行</div>
+                        <i class="ph ph-caret-down arrow-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="step-detail" data-i18n="s3Content">
+                            <p>1. 確保已安裝 Tampermonkey。</p>
+                            <p>2. 安裝 <span class="code-box">auto-like.user.js</span>。</p>
+                            <p>3. 腳本會自動：<strong>按讚</strong> &rarr; <strong>關閉分頁</strong>。</p>
+                            <p>4. 等待搬家完成。</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
     </div>
 </div>
 
 <script>
-    // --- 1. 裝置偵測與游標動畫 ---
+    // --- 1. 12 國語言字典 ---
+    const i18n = {
+        "zh-TW": {
+            badge: "Vibe Coding Journey", title: "Omni-Search Hub", tabOmni: "Omni-Search", tabEco: "YT 生態系",
+            v5Title: "V5 專業全相容版", v5Desc: "Popup 偵測、iOS 16px 適配、阻尼動畫",
+            v4Title: "V4 全能控制台", v4Desc: "實時天氣系統、Web 深度搜尋整合",
+            v3Title: "V3 穩定雙字典版", v3Desc: "經典劍橋/譯典通批次邏輯",
+            v2Title: "V2 美學處理版", v2Desc: "導入深色模式與液態按鈕",
+            v1Title: "V1 原型試驗版", v1Desc: "最純粹的批次搜尋功能起點",
+            ytIntro: "配合 Omni-Search 實現極致的自動化搬家體驗。", downloadTitle: "下載搬家工具箱", downloadDesc: "取得核心腳本與備份工具", stepHeader: "點擊下方步驟查看詳細教學：",
+            s1Title: '<i class="ph ph-download-simple"></i> STEP 1: 備份舊清單',
+            s1Content: '<p>1. 登入<strong>舊 YouTube 帳號</strong>，進入「喜歡的影片」。</p><p>2. 按 <span class="code-box">F12</span> 打開控制台。</p><p>3. 執行 <span class="code-box">01-export-playlist.js</span>。</p><p>4. 下載 <strong>.txt</strong> 檔案。</p>',
+            s2Title: '<i class="ph ph-play-circle"></i> STEP 2: Omni 批量啟動',
+            s2Content: '<p>1. 切換至<strong>新帳號</strong>。</p><p>2. 開啟 <a href="OmniSearch_V5.html">Omni-Search V5</a>。</p><p>3. 複製 .txt 內容貼入搜尋框。</p><p>4. 點擊開始，建議分批執行。</p>',
+            s3Title: '<i class="ph ph-robot"></i> STEP 3: 自動化執行',
+            s3Content: '<p>1. 安裝 Tampermonkey。</p><p>2. 安裝 <span class="code-box">auto-like.user.js</span>。</p><p>3. 腳本自動：<strong>按讚</strong> &rarr; <strong>關閉</strong>。</p><p>4. 喝杯咖啡等待完成。</p>'
+        },
+        "en": {
+            badge: "Vibe Coding Journey", title: "Omni-Search Hub", tabOmni: "Omni-Search", tabEco: "YT Ecosystem",
+            v5Title: "V5 Professional", v5Desc: "Popup detection, iOS optimization, Fluid motion",
+            v4Title: "V4 Control Center", v4Desc: "Real-time weather, Deep web search",
+            v3Title: "V3 Stable Dual-Dict", v3Desc: "Classic Cambridge/Yahoo logic",
+            v2Title: "V2 Aesthetic", v2Desc: "Dark mode & Liquid buttons",
+            v1Title: "V1 Prototype", v1Desc: "The origin of batch search",
+            ytIntro: "Achieve ultimate automation with Omni-Search.", downloadTitle: "Download Migration Tools", downloadDesc: "Get core scripts & backup tools", stepHeader: "Click steps below for details:",
+            s1Title: '<i class="ph ph-download-simple"></i> STEP 1: Backup Playlist',
+            s1Content: '<p>1. Login to <strong>Old Account</strong>, go to Liked Videos.</p><p>2. Press <span class="code-box">F12</span> for Console.</p><p>3. Run <span class="code-box">01-export-playlist.js</span>.</p><p>4. Download the <strong>.txt</strong> file.</p>',
+            s2Title: '<i class="ph ph-play-circle"></i> STEP 2: Launch Omni',
+            s2Content: '<p>1. Switch to <strong>New Account</strong>.</p><p>2. Open <a href="OmniSearch_V5.html">Omni-Search V5</a>.</p><p>3. Paste .txt content into box.</p><p>4. Click Start to process.</p>',
+            s3Title: '<i class="ph ph-robot"></i> STEP 3: Auto Execution',
+            s3Content: '<p>1. Install Tampermonkey.</p><p>2. Install <span class="code-box">auto-like.user.js</span>.</p><p>3. Script auto <strong>Likes</strong> &rarr; <strong>Closes</strong>.</p><p>4. Relax and wait.</p>'
+        },
+        "zh-CN": {
+            badge: "Vibe Coding Journey", title: "Omni-Search Hub", tabOmni: "Omni-Search", tabEco: "YT 生态系",
+            v5Title: "V5 专业全兼容版", v5Desc: "Popup 检测、iOS 适配、阻尼动画",
+            v4Title: "V4 全能控制台", v4Desc: "实时天气系统、深度搜索整合",
+            v3Title: "V3 稳定双字典版", v3Desc: "经典剑桥/译典通批次逻辑",
+            v2Title: "V2 美学处理版", v2Desc: "导入深色模式与液态按钮",
+            v1Title: "V1 原型试验版", v1Desc: "最纯粹的批次搜索功能起点",
+            ytIntro: "配合 Omni-Search 实现极致的自动化搬家体验。", downloadTitle: "下载搬家工具箱", downloadDesc: "获取核心脚本与备份工具", stepHeader: "点击下方步骤查看详细教学：",
+            s1Title: '<i class="ph ph-download-simple"></i> STEP 1: 备份旧清单',
+            s1Content: '<p>1. 登录<strong>旧 YouTube 账号</strong>，进入“喜欢的视频”。</p><p>2. 按 <span class="code-box">F12</span> 打开控制台。</p><p>3. 执行 <span class="code-box">01-export-playlist.js</span>。</p><p>4. 下载 <strong>.txt</strong> 文件。</p>',
+            s2Title: '<i class="ph ph-play-circle"></i> STEP 2: Omni 批量启动',
+            s2Content: '<p>1. 切换至<strong>新账号</strong>。</p><p>2. 开启 <a href="OmniSearch_V5.html">Omni-Search V5</a>。</p><p>3. 复制 .txt 内容贴入搜索框。</p><p>4. 点击开始，建议分批执行。</p>',
+            s3Title: '<i class="ph ph-robot"></i> STEP 3: 自动化执行',
+            s3Content: '<p>1. 安装 Tampermonkey。</p><p>2. 安装 <span class="code-box">auto-like.user.js</span>。</p><p>3. 脚本自动：<strong>点赞</strong> &rarr; <strong>关闭</strong>。</p><p>4. 喝杯咖啡等待完成。</p>'
+        },
+        "ja": {
+            badge: "Vibe Coding Journey", title: "Omni-Search Hub", tabOmni: "Omni-Search", tabEco: "YT エコシステム",
+            v5Title: "V5 プロフェッショナル", v5Desc: "ポップアップ検出、iOS最適化",
+            v4Title: "V4 コントロール", v4Desc: "リアルタイム天気、深層Web検索",
+            v3Title: "V3 安定版", v3Desc: "クラシックな一括検索ロジック",
+            v2Title: "V2 美学版", v2Desc: "ダークモード & リキッドボタン",
+            v1Title: "V1 プロトタイプ", v1Desc: "一括検索機能の原点",
+            ytIntro: "Omni-Searchで究極の自動化を実現。", downloadTitle: "移行ツールをDL", downloadDesc: "スクリプトとバックアップツール", stepHeader: "手順をクリックして詳細を表示：",
+            s1Title: '<i class="ph ph-download-simple"></i> STEP 1: バックアップ',
+            s1Content: '<p>1. <strong>旧アカウント</strong>で「高く評価した動画」へ。</p><p>2. <span class="code-box">F12</span> でコンソールを開く。</p><p>3. <span class="code-box">01-export</span> を実行。</p><p>4. <strong>.txt</strong> を保存。</p>',
+            s2Title: '<i class="ph ph-play-circle"></i> STEP 2: Omni 起動',
+            s2Content: '<p>1. <strong>新アカウント</strong>に切り替え。</p><p>2. <a href="OmniSearch_V5.html">Omni-Search V5</a>を開く。</p><p>3. テキストを貼り付け。</p><p>4. 開始をクリック。</p>',
+            s3Title: '<i class="ph ph-robot"></i> STEP 3: 自動実行',
+            s3Content: '<p>1. Tampermonkey をインストール。</p><p>2. <span class="code-box">auto-like.user.js</span> を入れる。</p><p>3. 自動で<strong>高評価</strong> &rarr; <strong>閉じる</strong>。</p><p>4. 完了を待つ。</p>'
+        },
+        "ko": {
+            badge: "Vibe Coding Journey", title: "Omni-Search Hub", tabOmni: "Omni-Search", tabEco: "YT 생태계",
+            v5Title: "V5 프로페셔널", v5Desc: "팝업 감지, iOS 최적화, 유체 애니메이션",
+            v4Title: "V4 컨트롤 센터", v4Desc: "실시간 날씨, 딥 웹 검색",
+            v3Title: "V3 안정 버전", v3Desc: "클래식 일괄 검색 로직",
+            v2Title: "V2 에스테틱", v2Desc: "다크 모드 & 리퀴드 버튼",
+            v1Title: "V1 프로토타입", v1Desc: "모든 것의 시작",
+            ytIntro: "Omni-Search로 자동화 이사를 경험하세요.", downloadTitle: "마이그레이션 도구", downloadDesc: "핵심 스크립트 다운로드", stepHeader: "아래 단계를 클릭하여 상세 내용 확인:",
+            s1Title: '<i class="ph ph-download-simple"></i> STEP 1: 백업',
+            s1Content: '<p>1. <strong>구 계정</strong> 로그인, 좋아요 영상 이동。</p><p>2. <span class="code-box">F12</span> 콘솔 열기。</p><p>3. <span class="code-box">01-export</span> 실행。</p><p>4. <strong>.txt</strong> 다운로드。</p>',
+            s2Title: '<i class="ph ph-play-circle"></i> STEP 2: Omni 실행',
+            s2Content: '<p>1. <strong>새 계정</strong>으로 전환。</p><p>2. <a href="OmniSearch_V5.html">Omni-Search V5</a> 실행。</p><p>3. 내용 붙여넣기。</p><p>4. 시작 클릭。</p>',
+            s3Title: '<i class="ph ph-robot"></i> STEP 3: 자동화',
+            s3Content: '<p>1. Tampermonkey 설치。</p><p>2. <span class="code-box">auto-like.user.js</span> 설치。</p><p>3. 자동 <strong>좋아요</strong> &rarr; <strong>닫기</strong>。</p><p>4. 완료 대기。</p>'
+        },
+        "es": {
+            badge: "Vibe Coding Journey", title: "Omni-Search Hub", tabOmni: "Omni-Search", tabEco: "Ecosistema YT",
+            v5Title: "V5 Profesional", v5Desc: "Detección Popup, Optimización iOS",
+            v4Title: "V4 Centro de Control", v4Desc: "Clima real, Búsqueda profunda",
+            v3Title: "V3 Estable", v3Desc: "Lógica clásica de búsqueda",
+            v2Title: "V2 Estética", v2Desc: "Modo oscuro y botones líquidos",
+            v1Title: "V1 Prototipo", v1Desc: "El origen de la búsqueda",
+            ytIntro: "Logra la automatización definitiva.", downloadTitle: "Descargar Herramientas", downloadDesc: "Scripts de migración", stepHeader: "Clic en los pasos para detalles:",
+            s1Title: '<i class="ph ph-download-simple"></i> STEP 1: Respaldo',
+            s1Content: '<p>1. Inicia en <strong>cuenta antigua</strong>.</p><p>2. Presiona <span class="code-box">F12</span>.</p><p>3. Ejecuta <span class="code-box">01-export.js</span>.</p><p>4. Descarga el <strong>.txt</strong>.</p>',
+            s2Title: '<i class="ph ph-play-circle"></i> STEP 2: Lanzar Omni',
+            s2Content: '<p>1. Cambia a <strong>cuenta nueva</strong>.</p><p>2. Abre Omni-Search.</p><p>3. Pega los enlaces.</p><p>4. Inicia el proceso.</p>',
+            s3Title: '<i class="ph ph-robot"></i> STEP 3: Auto Ejecución',
+            s3Content: '<p>1. Instala Tampermonkey.</p><p>2. Instala <span class="code-box">auto-like.js</span>.</p><p>3. Script da <strong>Like</strong> y cierra.</p><p>4. Espera.</p>'
+        },
+        "pt": {
+            badge: "Vibe Coding Journey", title: "Omni-Search Hub", tabOmni: "Omni-Search", tabEco: "Ecossistema YT",
+            v5Title: "V5 Profissional", v5Desc: "Detecção Popup, Otimização iOS",
+            v4Title: "V4 Controle", v4Desc: "Clima tempo real, Busca profunda",
+            v3Title: "V3 Estável", v3Desc: "Lógica clássica de busca",
+            v2Title: "V2 Estética", v2Desc: "Modo escuro & botões líquidos",
+            v1Title: "V1 Protótipo", v1Desc: "A origem da busca em lote",
+            ytIntro: "Automação definitiva com Omni-Search.", downloadTitle: "Ferramentas de Migração", downloadDesc: "Scripts principais", stepHeader: "Clique nos passos para detalhes:",
+            s1Title: '<i class="ph ph-download-simple"></i> STEP 1: Backup',
+            s1Content: '<p>1. Entre na <strong>conta antiga</strong>.</p><p>2. Pressione <span class="code-box">F12</span>.</p><p>3. Execute <span class="code-box">01-export.js</span>.</p><p>4. Baixe o <strong>.txt</strong>.</p>',
+            s2Title: '<i class="ph ph-play-circle"></i> STEP 2: Iniciar Omni',
+            s2Content: '<p>1. Mude para <strong>conta nova</strong>.</p><p>2. Abra o Omni-Search.</p><p>3. Cole os links.</p><p>4. Inicie.</p>',
+            s3Title: '<i class="ph ph-robot"></i> STEP 3: Execução Auto',
+            s3Content: '<p>1. Instale Tampermonkey.</p><p>2. Instale <span class="code-box">auto-like.js</span>.</p><p>3. Script dá <strong>Like</strong> e fecha.</p><p>4. Aguarde.</p>'
+        },
+        "vi": {
+            badge: "Vibe Coding Journey", title: "Omni-Search Hub", tabOmni: "Omni-Search", tabEco: "Hệ sinh thái YT",
+            v5Title: "V5 Chuyên nghiệp", v5Desc: "Phát hiện Popup, Tối ưu iOS",
+            v4Title: "V4 Điều khiển", v4Desc: "Thời tiết thực, Tìm kiếm sâu",
+            v3Title: "V3 Ổn định", v3Desc: "Logic tìm kiếm cổ điển",
+            v2Title: "V2 Thẩm mỹ", v2Desc: "Chế độ tối & nút lỏng",
+            v1Title: "V1 Nguyên mẫu", v1Desc: "Khởi nguồn tìm kiếm hàng loạt",
+            ytIntro: "Tự động hóa tối đa với Omni-Search.", downloadTitle: "Tải Công cụ", downloadDesc: "Scripts chính & sao lưu", stepHeader: "Nhấp vào các bước để xem chi tiết:",
+            s1Title: '<i class="ph ph-download-simple"></i> STEP 1: Sao lưu',
+            s1Content: '<p>1. Đăng nhập <strong>tài khoản cũ</strong>.</p><p>2. Nhấn <span class="code-box">F12</span>.</p><p>3. Chạy <span class="code-box">01-export.js</span>.</p><p>4. Tải file <strong>.txt</strong>.</p>',
+            s2Title: '<i class="ph ph-play-circle"></i> STEP 2: Chạy Omni',
+            s2Content: '<p>1. Đổi sang <strong>tài khoản mới</strong>.</p><p>2. Mở Omni-Search.</p><p>3. Dán liên kết.</p><p>4. Bắt đầu.</p>',
+            s3Title: '<i class="ph ph-robot"></i> STEP 3: Tự động chạy',
+            s3Content: '<p>1. Cài Tampermonkey.</p><p>2. Cài <span class="code-box">auto-like.js</span>.</p><p>3. Tự động <strong>Like</strong> & đóng.</p><p>4. Đợi hoàn tất.</p>'
+        },
+        "ru": {
+            badge: "Vibe Coding Journey", title: "Omni-Search Hub", tabOmni: "Omni-Search", tabEco: "Экосистема YT",
+            v5Title: "V5 Профессиональный", v5Desc: "Детектор окон, iOS оптимизация",
+            v4Title: "V4 Контроль", v4Desc: "Погода, Глубокий поиск",
+            v3Title: "V3 Стабильный", v3Desc: "Классическая логика",
+            v2Title: "V2 Эстетика", v2Desc: "Темная тема и анимация",
+            v1Title: "V1 Прототип", v1Desc: "Начало всего",
+            ytIntro: "Автоматизация с Omni-Search.", downloadTitle: "Скачать инструменты", downloadDesc: "Скрипты для миграции", stepHeader: "Нажмите на шаги для деталей:",
+            s1Title: '<i class="ph ph-download-simple"></i> STEP 1: Бэкап',
+            s1Content: '<p>1. Войдите в <strong>старый аккаунт</strong>.</p><p>2. Нажмите <span class="code-box">F12</span>.</p><p>3. Запустите <span class="code-box">01-export.js</span>.</p><p>4. Скачайте <strong>.txt</strong>.</p>',
+            s2Title: '<i class="ph ph-play-circle"></i> STEP 2: Запуск Omni',
+            s2Content: '<p>1. Смените на <strong>новый аккаунт</strong>.</p><p>2. Откройте Omni-Search.</p><p>3. Вставьте ссылки.</p><p>4. Старт.</p>',
+            s3Title: '<i class="ph ph-robot"></i> STEP 3: Автоматизация',
+            s3Content: '<p>1. Tampermonkey.</p><p>2. <span class="code-box">auto-like.js</span>.</p><p>3. Авто <strong>Лайк</strong> и закрытие.</p><p>4. Ждите.</p>'
+        },
+        "zh-HK": {
+            badge: "Vibe Coding Journey", title: "Omni-Search Hub", tabOmni: "Omni-Search", tabEco: "YT 生態圈",
+            v5Title: "V5 專業全兼容版", v5Desc: "Popup 偵測、iOS 適配、阻尼動畫",
+            v4Title: "V4 全能控制台", v4Desc: "實時天氣系統、深度搜尋",
+            v3Title: "V3 穩定雙字典版", v3Desc: "經典劍橋/雅虎邏輯",
+            v2Title: "V2 美學處理版", v2Desc: "導入深色模式與液態按鈕",
+            v1Title: "V1 原型試驗版", v1Desc: "最純粹嘅批次搜尋起點",
+            ytIntro: "配合 Omni-Search 實現極致嘅自動化搬屋體驗。", downloadTitle: "下載搬屋工具箱", downloadDesc: "攞核心腳本同備份工具", stepHeader: "點擊下面步驟睇詳細教學：",
+            s1Title: '<i class="ph ph-download-simple"></i> STEP 1: 備份舊 List',
+            s1Content: '<p>1. 登入<strong>舊 YouTube 戶口</strong>，入「喜歡的影片」。</p><p>2. 按 <span class="code-box">F12</span> 開 Console。</p><p>3. Run <span class="code-box">01-export-playlist.js</span>。</p><p>4. Download <strong>.txt</strong> 檔案。</p>',
+            s2Title: '<i class="ph ph-play-circle"></i> STEP 2: Omni 批量啟動',
+            s2Content: '<p>1. 轉去<strong>新戶口</strong>。</p><p>2. 開 <a href="OmniSearch_V5.html">Omni-Search V5</a>。</p><p>3. Copy .txt 內容貼入搜尋框。</p><p>4. 撳開始，建議分批做。</p>',
+            s3Title: '<i class="ph ph-robot"></i> STEP 3: 自動化執行',
+            s3Content: '<p>1. 安裝 Tampermonkey。</p><p>2. 安裝 <span class="code-box">auto-like.user.js</span>。</p><p>3. 腳本會自動：<strong>Like</strong> &rarr; <strong>閂分頁</strong>。</p><p>4. 飲杯咖啡等搞掂。</p>'
+        },
+        "bn": { // 簡化翻譯
+             badge: "Vibe Coding Journey", title: "Omni-Search Hub", tabOmni: "Omni-Search", tabEco: "YT Ecosystem",
+            v5Title: "V5 Professional", v5Desc: "Popup detection, iOS optimization",
+            v4Title: "V4 Control Center", v4Desc: "Real-time weather",
+            v3Title: "V3 Stable", v3Desc: "Classic logic",
+            v2Title: "V2 Aesthetic", v2Desc: "Dark mode",
+            v1Title: "V1 Prototype", v1Desc: "Batch search origin",
+            ytIntro: "Achieve automation with Omni-Search.", downloadTitle: "Download Tools", downloadDesc: "Get scripts", stepHeader: "Click steps for details:",
+            s1Title: '<i class="ph ph-download-simple"></i> STEP 1: Backup',
+            s1Content: '<p>1. Login <strong>Old Account</strong>.</p><p>2. Press <span class="code-box">F12</span>.</p><p>3. Run <span class="code-box">01-export.js</span>.</p>',
+            s2Title: '<i class="ph ph-play-circle"></i> STEP 2: Launch',
+            s2Content: '<p>1. <strong>New Account</strong>.</p><p>2. Open Omni-Search.</p><p>3. Paste links.</p>',
+            s3Title: '<i class="ph ph-robot"></i> STEP 3: Auto',
+            s3Content: '<p>1. Install Tampermonkey.</p><p>2. Auto <strong>Like</strong> & Close.</p>'
+        },
+        "hi": { // 簡化翻譯
+             badge: "Vibe Coding Journey", title: "Omni-Search Hub", tabOmni: "Omni-Search", tabEco: "YT Ecosystem",
+            v5Title: "V5 Professional", v5Desc: "Popup detection, iOS optimization",
+            v4Title: "V4 Control Center", v4Desc: "Real-time weather",
+            v3Title: "V3 Stable", v3Desc: "Classic logic",
+            v2Title: "V2 Aesthetic", v2Desc: "Dark mode",
+            v1Title: "V1 Prototype", v1Desc: "Batch search origin",
+            ytIntro: "Achieve automation with Omni-Search.", downloadTitle: "Download Tools", downloadDesc: "Get scripts", stepHeader: "Click steps for details:",
+            s1Title: '<i class="ph ph-download-simple"></i> STEP 1: Backup',
+            s1Content: '<p>1. Login <strong>Old Account</strong>.</p><p>2. Press <span class="code-box">F12</span>.</p><p>3. Run <span class="code-box">01-export.js</span>.</p>',
+            s2Title: '<i class="ph ph-play-circle"></i> STEP 2: Launch',
+            s2Content: '<p>1. <strong>New Account</strong>.</p><p>2. Open Omni-Search.</p><p>3. Paste links.</p>',
+            s3Title: '<i class="ph ph-robot"></i> STEP 3: Auto',
+            s3Content: '<p>1. Install Tampermonkey.</p><p>2. Auto <strong>Like</strong> & Close.</p>'
+        }
+    };
+
+    // --- 2. 語言切換邏輯 ---
+    function setLang(langCode) {
+        console.log(`Language switched to: ${langCode}`);
+        const data = i18n[langCode];
+        
+        // 更新所有帶 data-i18n 的元素
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (data[key]) {
+                // 如果內容包含 HTML 標籤 (如 Step Title 或 Content)，使用 innerHTML
+                if (data[key].includes('<')) {
+                    el.innerHTML = data[key];
+                } else {
+                    el.innerText = data[key];
+                }
+            }
+        });
+
+        document.getElementById('langMenu').classList.remove('active');
+    }
+
+    // --- 3. 手風琴切換邏輯 ---
+    function toggleAccordion(element) {
+        element.classList.toggle('open');
+    }
+
+    // --- 4. 分頁切換邏輯 ---
+    function switchTab(index) {
+        const pages = document.querySelectorAll('.page');
+        const tabs = document.querySelectorAll('.tab-btn');
+
+        pages.forEach(p => p.classList.remove('active'));
+        tabs.forEach(t => t.classList.remove('active'));
+
+        if(index === 0) {
+            document.getElementById('page-omni').classList.add('active');
+        } else {
+            document.getElementById('page-yt').classList.add('active');
+        }
+        tabs[index].classList.add('active');
+    }
+
+    // --- 5. 裝置偵測與游標動畫 ---
     const cursor = document.getElementById('customCursor');
     let mouseX = 0, mouseY = 0, cursorX = 0, cursorY = 0;
     const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
@@ -247,7 +624,7 @@
             mouseX = e.clientX; mouseY = e.clientY;
             
             // 互動放大邏輯
-            if (e.target.closest('.interactive') || e.target.closest('.lang-opt')) {
+            if (e.target.closest('.interactive') || e.target.closest('.accordion-header') || e.target.closest('.lang-opt')) {
                 cursor.style.transform = 'translate(-50%, -50%) scale(1.5)';
                 cursor.style.backgroundColor = 'rgba(255,255,255,0.1)';
             } else {
@@ -266,7 +643,7 @@
         animateCursor();
     }
 
-    // --- 2. 語言選單邏輯 (阻止冒泡) ---
+    // --- 6. 語言選單邏輯 ---
     function toggleLang(e) {
         e.stopPropagation(); 
         const menu = document.getElementById('langMenu');
@@ -277,13 +654,6 @@
         setTimeout(() => fab.style.transform = 'scale(1)', 150);
     }
 
-    function setLang(l) {
-        console.log(`Language switched to: ${l}`);
-        document.getElementById('langMenu').classList.remove('active');
-        // 這裡可加入實際切換語言的邏輯
-    }
-
-    // 點擊空白處關閉
     document.addEventListener('click', (e) => {
         const menu = document.getElementById('langMenu');
         const fab = document.getElementById('langFab');
@@ -292,7 +662,7 @@
         }
     });
 
-    // --- 3. 磁吸效果 ---
+    // --- 7. 磁吸效果 ---
     if (!isTouchDevice) {
         document.querySelectorAll('.interactive').forEach(el => {
             el.addEventListener('mousemove', (e) => {
@@ -308,7 +678,7 @@
         });
     }
 
-    // --- 4. 主題切換 ---
+    // --- 8. 主題切換 ---
     function toggleTheme() {
         const body = document.body;
         const btn = document.getElementById('themeToggle');
