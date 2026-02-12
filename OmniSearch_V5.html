@@ -854,7 +854,7 @@ setInterval(renderClock, 1000);
 renderClock();
 
 // ===================================
-// 4. Weather Module (With Wind & UV)
+// 4. Weather Module (Edit for minmilo83)
 // ===================================
 const weatherCard = document.getElementById('weatherCard');
 const citySelect = document.getElementById('citySelect');
@@ -863,6 +863,7 @@ function toggleWeather() {
     weatherCard.classList.toggle('expanded');
 }
 
+// 天氣代碼對應表
 function getWeatherInfo(code, isDay = 1) {
     if(code === 0) return { icon: isDay ? 'ph-sun' : 'ph-moon', text: '晴朗' };
     if(code === 1) return { icon: isDay ? 'ph-sun' : 'ph-moon-stars', text: '大致晴朗' };
@@ -881,45 +882,227 @@ function getWeatherInfo(code, isDay = 1) {
     return { icon: 'ph-question', text: '未知天氣' };
 }
 
+// ----------------------------------------------------
+// minmilo83's Enhanced Weather Matrix Logic [2026 Updated]
+// ----------------------------------------------------
+const WEATHER_DB = {
+    // 基礎天氣描述與心情 (Source: Reference 1)
+    weather: {
+        sunny: {
+            desc: [
+                "萬里無雲的湛藍天空，陽光毫無保留地灑落。",
+                "陽光普照，整個城市都被金色的光芒籠罩。",
+                "天空藍得像寶石一樣，能見度極佳。",
+                "陽光在雲朵間玩躲貓貓，光線柔和而舒適。",
+                "清澈明亮的天空，讓人心情也跟著開闊起來。"
+            ],
+            mood: ["活力充沛、積極", "充滿希望、清新", "愜意、舒適", "放鬆、愉悅"],
+            advice: [
+                "盡情享受戶外活動，曬曬太陽補充維生素D。",
+                "天氣極佳，適合野餐或去公園走走。",
+                "早起晨跑的最佳時刻，感受城市的甦醒。",
+                "適合攝影，捕捉光影的變化。",
+                "找個視野開闊的地方，享受這美好的時光。"
+            ]
+        },
+        cloudy: {
+            desc: [
+                "整片天空被灰白雲層覆蓋，光線平淡。",
+                "藍天與白雲各佔一半，天空層次豐富。",
+                "雲層較厚，陽光偶爾露臉，氣溫相對穩定。",
+                "天空灰濛濛的，雲層低垂，彷彿伸手可及。",
+                "陽光被雲層過濾後變得柔和，不再刺眼。"
+            ],
+            mood: ["沈穩、低調", "平和、自在", "慵懶、冷靜", "內斂、安靜"],
+            advice: [
+                "紫外線雖弱但不可輕忽，適合室內活動或閱讀。",
+                "適合逛街或在戶外咖啡廳工作。",
+                "這種光線非常適合拍攝人像，陰影柔和。",
+                "氣溫適宜，去河濱散步是個不錯的選擇。",
+                "帶著一本書去咖啡廳，享受悠閒的午後。"
+            ]
+        },
+        rain: {
+            desc: [
+                "穩定的雨勢滴答作響，洗刷著城市的塵埃。",
+                "空氣中飄著似有若無的細雨，地面微濕。",
+                "雨水如倒灌般傾瀉，視線模糊，街道變成小河。",
+                "天空灰暗，雨絲綿密，世界彷彿被隔絕。",
+                "陣雨來去匆匆，空氣中瀰漫著泥土的氣息。"
+            ],
+            mood: ["內省、平靜", "詩意、憂鬱", "焦慮、煩躁", "沉澱、思考"],
+            advice: [
+                "必備雨具，穿著防滑鞋類，適合在室內聽雨。",
+                "一把輕便傘或防潑水外套即可應付。",
+                "避免前往山區或低窪處，開車請放慢速度。",
+                "雨天路滑，騎車或開車都要保持安全距離。",
+                "在窗邊泡杯熱茶，欣賞雨景也是一種享受。"
+            ]
+        },
+        thunder: {
+            desc: [
+                "悶熱的空氣中醞釀著風暴，遠處雷聲隱隱作響。",
+                "閃電劃破天際伴隨轟隆雷聲，大氣極不穩定。",
+                "狂風暴雨夾雜著雷鳴，天空忽明忽暗。",
+                "雷聲大作，彷彿天空在怒吼，雨勢驚人。"
+            ],
+            mood: ["驚恐、敬畏", "緊張、壓迫", "震撼、敬畏"],
+            advice: [
+                "⚡ 危險：遠離空曠地與樹下，儘速進入室內躲避。",
+                "拔掉不必要的電器插頭，避免雷擊突波。",
+                "暫時別出門了！如果在戶外，請尋找安全建築物。",
+                "注意豪大雨可能造成的積水，遠離低窪地區。"
+            ]
+        },
+        fog: {
+            desc: [
+                "白茫茫一片，城市隱沒在迷霧之中，能見度低。",
+                "遠方景物像是蒙上一層髒髒的濾鏡，空氣混濁。",
+                "晨霧繚繞，建築物若隱若現，宛如仙境。",
+                "濃霧鎖城，視線不清，世界變得模糊而神秘。"
+            ],
+            mood: ["神秘、迷惘", "鬱悶、窒息感", "夢幻、朦朧"],
+            advice: [
+                "開車請開霧燈，小心路滑與視線不清。",
+                "能見度差，過馬路請特別留意來車。",
+                "如果空氣品質不佳（霾），請佩戴口罩。",
+                "放慢腳步，注意周遭環境變化。"
+            ]
+        },
+        snow: {
+            desc: [
+                "白色雪花緩緩飄落，世界漸漸變成銀白色。",
+                "狂風捲著大雪，視線幾乎為零，舉步維艱。",
+                "冰冷的空氣中飄著雪花，呼吸都化作白煙。",
+                "積雪覆蓋了大地，周遭變得異常寧靜。"
+            ],
+            mood: ["純潔、童心", "嚴峻、孤立", "寧靜、平和"],
+            advice: [
+                "注意保暖，戴上手套，享受堆雪人的樂趣。",
+                "❄️ 生存模式：非必要不出門，儲備糧食與暖氣。",
+                "道路可能結冰（黑冰），行走與駕駛需萬分小心。",
+                "穿著防水防滑的鞋子，以免滑倒受傷。"
+            ]
+        }
+    },
+    // 溫度與體感感官庫 (Source: Reference 2)
+    temp: {
+        extreme_hot: { // > 36
+            desc: ["酷暑難耐，走在路上一分鐘就汗流浹背。", "像待在巨型吹風機前，柏油路面軟化，熱浪扭曲了視線。", "地表彷彿在燃燒，空氣像滾燙的烙鐵肺部隱隱作痛。"],
+            advice: ["🌡️ 生存警告：嚴禁長時間外出。必須待在冷氣房。", "多喝水，尋找陰涼處，建議隨身攜帶手持電風扇。", "預防中暑是首要任務，穿著最輕薄透氣的衣物。"]
+        },
+        hot: { // 31-35
+            desc: ["典型的夏日午後，悶熱感揮之不去。", "熱氣逼人，只要一動就會流汗。", "陽光熱辣辣的，空氣中充滿了熱能量。"],
+            advice: ["輕便短袖、短褲。適合室內吹冷氣或去海邊戲水。", "避免在正午時分進行劇烈運動。", "記得多補充水分，以免脫水。"]
+        },
+        warm: { // 26-30
+            desc: ["溫暖稍熱，陽光充足時會微微出汗。", "空氣溫暖，微風吹拂下還算舒適。", "適合活動的溫度，身體感覺很放鬆。"],
+            advice: ["短袖搭配薄襯衫防曬。適合各類戶外活動。", "天氣不錯，可以去戶外走走，但要注意防曬。", "穿著透氣的棉麻材質會很舒服。"]
+        },
+        comfort: { // 21-25
+            desc: ["黃金溫度，涼爽舒適，空氣中帶著清甜感。", "不冷也不熱，是讓人最想待在戶外的溫度。", "微風輕拂，體感非常完美。"],
+            advice: ["👕 穿衣聖典：長袖襯衫或薄 T-shirt，不冷不熱剛剛好。", "把握好天氣，去散步、騎車都非常棒。", "穿一件薄外套備用即可。"]
+        },
+        cool: { // 16-20
+            desc: ["微微涼意，早晚溫差開始顯著。", "空氣清新而涼爽，讓人精神一振。", "風吹過時會感到一絲涼意，秋意漸濃。"],
+            advice: ["需換上薄長袖加上一件薄外套。", "適合洋蔥式穿法，方便隨溫度調整。", "早出晚歸記得多帶一件衣服。"]
+        },
+        cold: { // 11-15
+            desc: ["涼意明顯，風吹過時會不自覺縮起脖子。", "空氣變得冰涼，呼吸時感覺鼻腔微冷。", "寒意漸生，讓人想尋找溫暖的地方。"],
+            advice: ["防風外套、針織衫。是吃火鍋的好時機。", "出門記得圍上圍巾，保護脖子不受風寒。", "注意保暖，避免著涼感冒。"]
+        },
+        freezing: { // 1-10
+            desc: ["寒氣逼人，手腳開始感到冰冷。", "冷徹心扉，呼吸時會呼出白煙。", "冰冷的空氣彷彿能穿透衣物。"],
+            advice: ["發熱衣、厚外套、毛帽不可少。", "❄️ 重裝防寒，羽絨衣、圍巾、手套必須全副武裝。", "保持身體乾燥溫暖，多喝熱水。"]
+        },
+        polar: { // <= 0
+            desc: ["冰封世界，地面可能結冰，空氣乾冷刺骨。", "鼻腔內的濕氣會瞬間結冰，眼睫毛可能掛霜。", "極度酷寒，暴露在外的皮膚會感到刺痛。"],
+            advice: ["專業防寒服，注意走路防滑（黑冰警告）。", "洋蔥式穿法極限，暖暖包必備。減少皮膚外露。", "除非必要，否則盡量待在溫暖的室內。"]
+        }
+    },
+    // 動態疊加邏輯 (Source: Reference 1 & 2)
+    modifiers: {
+        wind: ["🌬️ 外面風很大，體感溫度會更低，建議穿著防風外套。", "強風呼嘯，路樹搖晃，帽子都快戴不住。", "避免穿著飄逸裙裝，機車族請注意側風。"],
+        uv: ["☀️ 紫外線極強 (Extreme)，請務必戴帽、墨鏡並塗抹防曬。", "😎 紫外線偏高，外出建議做好防曬措施。", "陽光咬人，皮膚有灼熱感，請撐陽傘。"],
+        aqi_bad: ["😷 空氣中有明顯的異味與塵土感，宛如毒氣室。", "天空有點灰濛濛，呼吸道稍微敏感。", "AQI警戒：請佩戴口罩，減少戶外逗留時間。"],
+        tsunami: ["🌊 海嘯注意：遠離海灘，注意廣播。", "快跑！往高處跑！不要管天氣如何了，保命要緊！"],
+        earthquake: ["⚠ 地面有些許晃動，像是有大型車經過。", "地震！立即採取趴下、掩護、穩住 (Drop, Cover, Hold on)。"]
+    }
+};
+
+function getRandom(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
 function generateWeatherAdvice(temp, code, windSpeed, uvIndex) {
-    let advice = [];
-    
-    if (temp >= 35) advice.push("🌡️ 極端高溫！請避免長時間待在戶外，多補充水分以防中暑。");
-    else if (temp >= 30) advice.push("天氣炎熱，穿著透氣衣物，注意水分補充。");
-    else if (temp >= 24 && temp < 30) advice.push("氣溫舒適，適合穿著輕便衣物。");
-    else if (temp >= 18 && temp < 24) advice.push("氣溫涼爽，建議穿長袖或搭配薄外套。");
-    else if (temp >= 10 && temp < 18) advice.push("天氣偏冷，請穿著夾克或大衣。");
-    else if (temp < 10) advice.push("❄️ 嚴寒天氣，請務必穿著羽絨衣，戴上圍巾手套保暖。");
+    // 1. 決定天氣類型 (Map WMO Code to Type)
+    let type = 'cloudy';
+    if (code <= 1) type = 'sunny';
+    else if (code <= 3) type = 'cloudy';
+    else if (code == 45 || code == 48) type = 'fog';
+    else if (code >= 95) type = 'thunder';
+    else if (code >= 71 || (code >= 85 && code <= 86)) type = 'snow';
+    else type = 'rain'; // Default rain for other codes
 
-    const rainCodes = [51,53,55,61,63,65,80,81,82,95,96,99];
-    const snowCodes = [71,73,75,77,85,86];
-    const fogCodes = [45, 48];
+    // 2. 決定溫度區間
+    let tempZone = 'comfort';
+    if (temp > 35) tempZone = 'extreme_hot';
+    else if (temp > 30) tempZone = 'hot';
+    else if (temp > 25) tempZone = 'warm';
+    else if (temp > 20) tempZone = 'comfort';
+    else if (temp > 15) tempZone = 'cool';
+    else if (temp > 10) tempZone = 'cold';
+    else if (temp > 0) tempZone = 'freezing';
+    else tempZone = 'polar';
+
+    // 3. 隨機生成模擬 AQI (因為 API 未提供，為了展示矩陣邏輯而模擬)
+    const simulatedAQI = Math.floor(Math.random() * 160); // 0-160
     
-    if (rainCodes.includes(code)) {
-        if (code >= 95) advice.push("⚡ 戶外有雷雨，請盡量待在室內確保安全。");
-        else if (code >= 63 || code === 82) advice.push("🌧️ 雨勢較大，建議穿著雨衣並穿防水鞋。");
-        else advice.push("☂️ 記得攜帶雨具，路面濕滑請小心行走。");
-    } else if (snowCodes.includes(code)) {
-        advice.push("☃️ 戶外下雪，道路可能結冰，請穿防滑鞋並注意保暖。");
-    } else if (fogCodes.includes(code)) {
-        advice.push("🌫️ 霧氣濃厚，能見度低，開車騎車請開大燈並放慢速度。");
+    // 4. 開始組合文本
+    let baseDesc = getRandom(WEATHER_DB.weather[type].desc);
+    let mood = getRandom(WEATHER_DB.weather[type].mood);
+    let tempDesc = getRandom(WEATHER_DB.temp[tempZone].desc);
+    let mainAdvice = getRandom(WEATHER_DB.weather[type].advice); // 優先使用天氣建議
+    
+    // 若極端溫度，優先使用溫度建議
+    if (tempZone === 'extreme_hot' || tempZone === 'polar' || tempZone === 'freezing') {
+        mainAdvice = getRandom(WEATHER_DB.temp[tempZone].advice);
     }
 
+    // 5. 動態疊加 (Modifiers)
+    let warnings = [];
+    
+    // 風速疊加
     if (windSpeed > 30) {
-        advice.push("🌬️ 外面風很大，體感溫度會更低，建議穿著防風外套。");
+        warnings.push(getRandom(WEATHER_DB.modifiers.wind));
+    }
+    
+    // UV 疊加 (僅在晴天或多雲且 UV 高時)
+    if (uvIndex >= 6 && (type === 'sunny' || type === 'cloudy')) {
+        warnings.push(getRandom(WEATHER_DB.modifiers.uv));
     }
 
-    if (uvIndex >= 8 && !rainCodes.includes(code)) {
-        advice.push("☀️ 紫外線極強 (Extreme)，請務必戴帽、墨鏡並塗抹防曬。");
-    } else if (uvIndex >= 6 && !rainCodes.includes(code)) {
-        advice.push("😎 紫外線偏高，外出建議做好防曬措施。");
+    // AQI 疊加 (模擬)
+    if (simulatedAQI > 100) {
+        warnings.push(getRandom(WEATHER_DB.modifiers.aqi_bad));
     }
 
-    if (advice.length <= 1 && code <= 2) {
-        advice.push("天氣晴朗，是個適合外出的好天氣！");
+    // 6. 最終組合 HTML
+    let finalHtml = `
+        <div style="margin-bottom:6px;"><b>${baseDesc}</b></div>
+        <div style="font-size:0.9em; opacity:0.85; margin-bottom:8px;">${tempDesc} 心情：${mood}</div>
+        <div style="border-top:1px solid rgba(255,255,255,0.3); padding-top:8px;">
+            💡 ${mainAdvice}
+        </div>
+    `;
+
+    if (warnings.length > 0) {
+        finalHtml += `<div style="margin-top:8px; color:#ff6b6b; font-weight:600; font-size:0.9em;">
+            ${warnings.join("<br/>")}
+        </div>`;
     }
 
-    return advice.join("<br/>");
+    return finalHtml;
 }
 
 async function fetchWeather() {
@@ -979,6 +1162,7 @@ function renderWeather(data) {
     const sunset = new Date(daily.sunset[0]).toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'});
     document.getElementById('sunTime').textContent = `${sunrise} / ${sunset}`;
 
+    // 使用新的生成矩陣邏輯
     const adviceText = generateWeatherAdvice(current.temperature_2m, current.weather_code, windKmh, uvMax);
     document.getElementById('clothingAdvice').innerHTML = adviceText;
 
