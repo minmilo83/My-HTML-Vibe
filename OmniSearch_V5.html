@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#e0eafc" />
-<title>全能批次搜尋控制台</title>
+<title>全能批次搜尋控制台 (Mimi Pro Ver.)</title>
 
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
@@ -218,7 +218,7 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
 .status-total { color: #2ecc71; }
 
 /* =======================
-   4. Weather Widget
+   4. Weather Widget (Optimized)
    ======================= */
 #weatherCard {
     background: var(--weather-bg); color: var(--weather-text);
@@ -226,32 +226,90 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
     transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     margin-top: 30px; border: none;
 }
-.weather-header { padding: 25px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+/* Removed .interactive from the main header container to prevent cursor bloat */
+.weather-header { 
+    padding: 20px 25px 10px 25px; 
+    display: flex; flex-direction: column; 
+    gap: 15px; 
+    cursor: default; /* Default cursor for container */
+}
+.weather-top-row {
+    display: flex; justify-content: space-between; align-items: flex-start;
+}
 .weather-main { display: flex; align-items: center; gap: 15px; }
 .weather-icon-lg { font-size: 48px; }
 .weather-temp { font-size: 36px; font-weight: 700; }
-.weather-meta { display: flex; flex-direction: column; font-size: 0.9em; opacity: 0.9; }
+.weather-meta { display: flex; flex-direction: column; font-size: 0.9em; opacity: 0.9; margin-top:5px; }
+
+/* 搜尋與選單控制列 */
+.weather-controls {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    background: rgba(255,255,255,0.15);
+    padding: 8px 12px;
+    border-radius: 16px;
+    backdrop-filter: blur(5px);
+}
+/* Interactive added explicitly to clickable elements */
 .weather-city-select {
-    background: rgba(255,255,255,0.2); border: none; color: currentColor;
-    padding: 5px 10px; border-radius: 12px; font-size: 0.9em; cursor: pointer;
-    outline: none; backdrop-filter: blur(5px);
+    background: transparent; border: none; color: currentColor;
+    font-size: 0.95em; font-weight: 700; cursor: pointer;
+    outline: none; padding: 4px; margin: 0;
     appearance: none; -webkit-appearance: none; 
+    border-bottom: 1px dashed rgba(255,255,255,0.5);
+    min-width: 100px;
 }
 .weather-city-select option { background: #fff; color: #333; }
-.weather-advice { padding: 0 25px 25px 25px; font-size: 0.95em; font-weight: 500; display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; }
+
+.search-divider { width: 1px; height: 16px; background: rgba(255,255,255,0.4); }
+
+.weather-search-input {
+    background: transparent; border: none;
+    color: currentColor; padding: 4px; 
+    font-size: 0.9em; outline: none; width: 110px;
+    border-bottom: 1px solid transparent;
+    transition: 0.3s;
+    cursor: text; /* Text cursor for input */
+}
+.weather-search-input:focus {
+    border-bottom: 1px solid rgba(255,255,255,0.8);
+    width: 140px;
+}
+.weather-search-input::placeholder { color: rgba(255,255,255,0.5); }
+.weather-search-btn {
+    background: rgba(255,255,255,0.2); border: none; color: currentColor;
+    width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: 0.2s;
+}
+.weather-search-btn:hover { background: rgba(255,255,255,0.4); }
+
+/* Details & Advice */
+.weather-advice { padding: 15px 25px 25px 25px; font-size: 0.95em; font-weight: 500; display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; }
 .weather-details { max-height: 0; opacity: 0; transition: all 0.5s ease; background: rgba(0,0,0,0.05); padding: 0 25px; }
-#weatherCard.expanded .weather-details { max-height: 550px; opacity: 1; padding: 25px; }
-.forecast-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 15px; }
-.forecast-day { display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 0.8em; text-align: center; }
-.detail-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-.detail-item { background: rgba(255,255,255,0.15); padding: 10px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; text-align: center; }
-.detail-label { font-size: 0.75em; opacity: 0.8; margin-bottom: 4px; }
-.detail-val { font-weight: 700; font-size: 1.1em; }
-.toggle-arrow { transition: transform 0.4s; }
+#weatherCard.expanded .weather-details { max-height: 700px; opacity: 1; padding: 25px; }
+.forecast-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 15px; }
+.forecast-day { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.75em; text-align: center; }
+.detail-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
+.detail-item { background: rgba(255,255,255,0.15); padding: 10px 5px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.detail-label { font-size: 0.7em; opacity: 0.8; margin-bottom: 4px; white-space: nowrap; }
+.detail-val { font-weight: 700; font-size: 0.95em; }
+.toggle-arrow { transition: transform 0.4s; position: absolute; top: 25px; right: 25px; cursor: pointer; }
 #weatherCard.expanded .toggle-arrow { transform: rotate(180deg); }
 
+/* Earthquake Pulse Animation */
+@keyframes quakePulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 107, 107, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
+}
+.quake-alert {
+    animation: quakePulse 2s infinite;
+    border: 1px solid #ff6b6b !important;
+    background: rgba(255, 107, 107, 0.25) !important;
+}
+
 /* =======================
-   5. Custom Cursor (RWD Fix)
+   5. Custom Cursor
    ======================= */
 #customCursor {
   position: fixed; top: 0; left: 0; z-index: 9999;
@@ -266,7 +324,6 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
   box-shadow: var(--cursor-shadow);
   display: none; 
 }
-
 @media (pointer: fine) {
     #customCursor { display: block; }
     body.hover-active #customCursor {
@@ -278,7 +335,7 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
 }
 
 /* =======================
-   6. Flip Clock (Responsive)
+   6. Flip Clock
    ======================= */
 .clock-container {
   display: flex; justify-content: center; align-items: center;
@@ -475,36 +532,45 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
     </div>
 
     <div id="weatherCard" class="glass-card">
-        <div class="weather-header interactive" onclick="toggleWeather()">
-            <div class="weather-main">
-                <i id="weatherIcon" class="ph ph-cloud-sun weather-icon-lg"></i>
-                <div>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <span id="weatherTemp" class="weather-temp">--°</span>
-                        <select id="citySelect" class="weather-city-select interactive" onclick="event.stopPropagation()">
-                            <option value="auto">📍 自動偵測</option>
-                            <option value="25.033,121.565">Taipei</option>
-                            <option value="24.147,120.673">Taichung</option>
-                            <option value="22.627,120.301">Kaohsiung</option>
-                            <option value="24.813,120.967">Hsinchu</option>
-                            <option value="22.999,120.226">Tainan</option>
-                            <option value="35.689,139.691">Tokyo</option>
-                            <option value="40.712,-74.006">New York</option>
-                            <option value="51.507,-0.127">London</option>
-                        </select>
-                    </div>
-                    <div class="weather-meta">
-                        <span id="weatherDesc">載入中...</span>
-                        <span id="weatherFeels">體感 --°</span>
+        <div class="weather-header" onclick="toggleWeather()">
+            <div class="weather-top-row">
+                <div class="weather-main">
+                    <i id="weatherIcon" class="ph ph-cloud-sun weather-icon-lg"></i>
+                    <div>
+                        <div class="weather-controls" onclick="event.stopPropagation()">
+                            <select id="citySelect" class="weather-city-select interactive">
+                                <option value="auto">📍 自動偵測</option>
+                                <option value="25.033,121.565">Taipei</option>
+                                <option value="24.147,120.673">Taichung</option>
+                                <option value="22.627,120.301">Kaohsiung</option>
+                                <option value="24.813,120.967">Hsinchu</option>
+                                <option value="22.999,120.226">Tainan</option>
+                                <option value="35.689,139.691">Tokyo</option>
+                                <option value="40.712,-74.006">New York</option>
+                                <option value="51.507,-0.127">London</option>
+                            </select>
+                            <div class="search-divider"></div>
+                            <input type="text" id="citySearchInput" class="weather-search-input" placeholder="🔍 搜尋城市..." onkeypress="handleEnter(event)">
+                            <button class="weather-search-btn interactive" onclick="searchCityLocation()">
+                                <i class="ph ph-magnifying-glass"></i>
+                            </button>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:10px; margin-top:5px;">
+                            <span id="weatherTemp" class="weather-temp">--°</span>
+                        </div>
+                        <div class="weather-meta">
+                            <span id="weatherDesc">載入中...</span>
+                            <span id="weatherFeels">體感 --°</span>
+                        </div>
                     </div>
                 </div>
+                <i class="ph ph-caret-down toggle-arrow interactive" style="font-size:24px;"></i>
             </div>
-            <i class="ph ph-caret-down toggle-arrow interactive" style="font-size:24px;"></i>
         </div>
         
         <div class="weather-advice">
              <i class="ph ph-coat-hanger" style="font-size:1.5em; flex-shrink:0; margin-top:2px;"></i>
-             <span id="clothingAdvice">正在分析天氣狀況...</span>
+             <span id="clothingAdvice">正在分析天氣與環境數據...</span>
         </div>
 
         <div class="weather-details">
@@ -514,16 +580,23 @@ h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; 
                     <span class="detail-val" id="uvIndex">--</span>
                 </div>
                 <div class="detail-item">
+                    <span class="detail-label">空氣品質 (AQI)</span>
+                    <span class="detail-val" id="aqiVal">--</span>
+                </div>
+                <div class="detail-item">
                     <span class="detail-label">風速 (Wind)</span>
                     <span class="detail-val" id="windSpeed">-- km/h</span>
                 </div>
-                <div class="detail-item">
-                    <span class="detail-label">日出 / 日落</span>
-                    <span class="detail-val" id="sunTime" style="font-size:0.95em">-- : --</span>
+                <div class="detail-item" id="quakeBox">
+                    <span class="detail-label">地震 (近24h)</span>
+                    <span class="detail-val" id="quakeStatus" style="font-size:0.8em;">偵測中</span>
                 </div>
             </div>
             <div style="font-size:0.8em; opacity:0.7; margin-bottom:5px;">未來 7 日預報</div>
             <div class="forecast-grid" id="forecastGrid"></div>
+            <div style="margin-top:15px; font-size:0.65em; opacity:0.4; text-align:center;">
+                Data: Open-Meteo & USGS (Earthquake)
+            </div>
         </div>
     </div>
 
@@ -602,11 +675,12 @@ if (!isTouchDevice) {
 function initInteractive() {
     if(isTouchDevice) return;
     
+    // Clear old listeners first if re-initializing (though logic here runs once)
     document.querySelectorAll('.interactive').forEach(el => {
-      el.removeEventListener('mouseenter', null); 
       el.addEventListener('mouseenter', () => {
         document.body.classList.add('hover-active');
         const rect = el.getBoundingClientRect();
+        // Just slightly larger than the element for the spotlight effect
         cursor.style.width = (rect.width + 10) + 'px';
         cursor.style.height = (rect.height + 10) + 'px';
         cursor.style.borderRadius = getComputedStyle(el).borderRadius;
@@ -619,10 +693,12 @@ function initInteractive() {
         el.style.transform = 'translate(0, 0)';
       });
       el.addEventListener('mousemove', (e) => {
-        const rect = el.getBoundingClientRect();
-        const centerX = rect.left + rect.width/2;
-        const centerY = rect.top + rect.height/2;
-        el.style.transform = `translate(${(e.clientX - centerX)*0.15}px, ${(e.clientY - centerY)*0.15}px)`;
+        if(document.body.classList.contains('hover-active')){
+            const rect = el.getBoundingClientRect();
+            const centerX = rect.left + rect.width/2;
+            const centerY = rect.top + rect.height/2;
+            el.style.transform = `translate(${(e.clientX - centerX)*0.15}px, ${(e.clientY - centerY)*0.15}px)`;
+        }
       });
     });
 }
@@ -854,13 +930,72 @@ setInterval(renderClock, 1000);
 renderClock();
 
 // ===================================
-// 4. Weather Module (Edit for minmilo83)
+// 4. Weather Module (Search, Real Data & Matrix Advice)
 // ===================================
 const weatherCard = document.getElementById('weatherCard');
 const citySelect = document.getElementById('citySelect');
+const citySearchInput = document.getElementById('citySearchInput');
 
 function toggleWeather() {
     weatherCard.classList.toggle('expanded');
+}
+
+function handleEnter(e) {
+    if(e.key === 'Enter') searchCityLocation();
+}
+
+// 搜尋城市邏輯 (Open-Meteo Geocoding)
+async function searchCityLocation() {
+    const query = citySearchInput.value.trim();
+    if(!query) return;
+
+    // UI Feedback
+    const btn = document.querySelector('.weather-search-btn');
+    const originalIcon = btn.innerHTML;
+    btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i>';
+
+    try {
+        const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=zh&format=json`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.results && data.results.length > 0) {
+            const loc = data.results[0];
+            const name = loc.name;
+            const country = loc.country || '';
+            const lat = loc.latitude;
+            const lon = loc.longitude;
+            const val = `${lat},${lon}`;
+            
+            // 檢查是否已存在，不存在則新增選項
+            let exists = false;
+            for(let i=0; i<citySelect.options.length; i++){
+                if(citySelect.options[i].value === val) {
+                    citySelect.selectedIndex = i;
+                    exists = true;
+                    break;
+                }
+            }
+            if(!exists){
+                const opt = document.createElement('option');
+                opt.value = val;
+                opt.text = `📍 ${name} (${country})`;
+                citySelect.add(opt);
+                citySelect.value = val;
+            }
+            
+            // 立即搜尋天氣
+            fetchWeather();
+            citySearchInput.value = ''; // 清空輸入框
+        } else {
+            alert("❌ 找不到該城市，請嘗試輸入英文名稱 (例如: Kyoto)。");
+        }
+    } catch(e) {
+        console.error(e);
+        alert("搜尋失敗，請檢查網路連線。");
+    } finally {
+        btn.innerHTML = originalIcon;
+    }
 }
 
 // 天氣代碼對應表
@@ -883,109 +1018,41 @@ function getWeatherInfo(code, isDay = 1) {
 }
 
 // ----------------------------------------------------
-// minmilo83's Enhanced Weather Matrix Logic [2026 Updated]
+// minmilo83's Weather Matrix Database (5000+ Logic)
 // ----------------------------------------------------
 const WEATHER_DB = {
-    // 基礎天氣描述與心情 (Source: Reference 1)
     weather: {
         sunny: {
-            desc: [
-                "萬里無雲的湛藍天空，陽光毫無保留地灑落。",
-                "陽光普照，整個城市都被金色的光芒籠罩。",
-                "天空藍得像寶石一樣，能見度極佳。",
-                "陽光在雲朵間玩躲貓貓，光線柔和而舒適。",
-                "清澈明亮的天空，讓人心情也跟著開闊起來。"
-            ],
+            desc: ["萬里無雲的湛藍天空，陽光毫無保留地灑落。", "陽光普照，整個城市都被金色的光芒籠罩。", "天空藍得像寶石一樣，能見度極佳。", "陽光在雲朵間玩躲貓貓，光線柔和而舒適。", "清澈明亮的天空，讓人心情也跟著開闊起來。"],
             mood: ["活力充沛、積極", "充滿希望、清新", "愜意、舒適", "放鬆、愉悅"],
-            advice: [
-                "盡情享受戶外活動，曬曬太陽補充維生素D。",
-                "天氣極佳，適合野餐或去公園走走。",
-                "早起晨跑的最佳時刻，感受城市的甦醒。",
-                "適合攝影，捕捉光影的變化。",
-                "找個視野開闊的地方，享受這美好的時光。"
-            ]
+            advice: ["盡情享受戶外活動，曬曬太陽補充維生素D。", "天氣極佳，適合野餐或去公園走走。", "早起晨跑的最佳時刻，感受城市的甦醒。", "適合攝影，捕捉光影的變化。", "找個視野開闊的地方，享受這美好的時光。"]
         },
         cloudy: {
-            desc: [
-                "整片天空被灰白雲層覆蓋，光線平淡。",
-                "藍天與白雲各佔一半，天空層次豐富。",
-                "雲層較厚，陽光偶爾露臉，氣溫相對穩定。",
-                "天空灰濛濛的，雲層低垂，彷彿伸手可及。",
-                "陽光被雲層過濾後變得柔和，不再刺眼。"
-            ],
+            desc: ["整片天空被灰白雲層覆蓋，光線平淡。", "藍天與白雲各佔一半，天空層次豐富。", "雲層較厚，陽光偶爾露臉，氣溫相對穩定。", "天空灰濛濛的，雲層低垂，彷彿伸手可及。", "陽光被雲層過濾後變得柔和，不再刺眼。"],
             mood: ["沈穩、低調", "平和、自在", "慵懶、冷靜", "內斂、安靜"],
-            advice: [
-                "紫外線雖弱但不可輕忽，適合室內活動或閱讀。",
-                "適合逛街或在戶外咖啡廳工作。",
-                "這種光線非常適合拍攝人像，陰影柔和。",
-                "氣溫適宜，去河濱散步是個不錯的選擇。",
-                "帶著一本書去咖啡廳，享受悠閒的午後。"
-            ]
+            advice: ["紫外線雖弱但不可輕忽，適合室內活動或閱讀。", "適合逛街或在戶外咖啡廳工作。", "這種光線非常適合拍攝人像，陰影柔和。", "氣溫適宜，去河濱散步是個不錯的選擇。", "帶著一本書去咖啡廳，享受悠閒的午後。"]
         },
         rain: {
-            desc: [
-                "穩定的雨勢滴答作響，洗刷著城市的塵埃。",
-                "空氣中飄著似有若無的細雨，地面微濕。",
-                "雨水如倒灌般傾瀉，視線模糊，街道變成小河。",
-                "天空灰暗，雨絲綿密，世界彷彿被隔絕。",
-                "陣雨來去匆匆，空氣中瀰漫著泥土的氣息。"
-            ],
+            desc: ["穩定的雨勢滴答作響，洗刷著城市的塵埃。", "空氣中飄著似有若無的細雨，地面微濕。", "雨水如倒灌般傾瀉，視線模糊，街道變成小河。", "天空灰暗，雨絲綿密，世界彷彿被隔絕。", "陣雨來去匆匆，空氣中瀰漫著泥土的氣息。"],
             mood: ["內省、平靜", "詩意、憂鬱", "焦慮、煩躁", "沉澱、思考"],
-            advice: [
-                "必備雨具，穿著防滑鞋類，適合在室內聽雨。",
-                "一把輕便傘或防潑水外套即可應付。",
-                "避免前往山區或低窪處，開車請放慢速度。",
-                "雨天路滑，騎車或開車都要保持安全距離。",
-                "在窗邊泡杯熱茶，欣賞雨景也是一種享受。"
-            ]
+            advice: ["必備雨具，穿著防滑鞋類，適合在室內聽雨。", "一把輕便傘或防潑水外套即可應付。", "避免前往山區或低窪處，開車請放慢速度。", "雨天路滑，騎車或開車都要保持安全距離。", "在窗邊泡杯熱茶，欣賞雨景也是一種享受。"]
         },
         thunder: {
-            desc: [
-                "悶熱的空氣中醞釀著風暴，遠處雷聲隱隱作響。",
-                "閃電劃破天際伴隨轟隆雷聲，大氣極不穩定。",
-                "狂風暴雨夾雜著雷鳴，天空忽明忽暗。",
-                "雷聲大作，彷彿天空在怒吼，雨勢驚人。"
-            ],
+            desc: ["悶熱的空氣中醞釀著風暴，遠處雷聲隱隱作響。", "閃電劃破天際伴隨轟隆雷聲，大氣極不穩定。", "狂風暴雨夾雜著雷鳴，天空忽明忽暗。", "雷聲大作，彷彿天空在怒吼，雨勢驚人。"],
             mood: ["驚恐、敬畏", "緊張、壓迫", "震撼、敬畏"],
-            advice: [
-                "⚡ 危險：遠離空曠地與樹下，儘速進入室內躲避。",
-                "拔掉不必要的電器插頭，避免雷擊突波。",
-                "暫時別出門了！如果在戶外，請尋找安全建築物。",
-                "注意豪大雨可能造成的積水，遠離低窪地區。"
-            ]
+            advice: ["⚡ 危險：遠離空曠地與樹下，儘速進入室內躲避。", "拔掉不必要的電器插頭，避免雷擊突波。", "暫時別出門了！如果在戶外，請尋找安全建築物。", "注意豪大雨可能造成的積水，遠離低窪地區。"]
         },
         fog: {
-            desc: [
-                "白茫茫一片，城市隱沒在迷霧之中，能見度低。",
-                "遠方景物像是蒙上一層髒髒的濾鏡，空氣混濁。",
-                "晨霧繚繞，建築物若隱若現，宛如仙境。",
-                "濃霧鎖城，視線不清，世界變得模糊而神秘。"
-            ],
+            desc: ["白茫茫一片，城市隱沒在迷霧之中，能見度低。", "遠方景物像是蒙上一層髒髒的濾鏡，空氣混濁。", "晨霧繚繞，建築物若隱若現，宛如仙境。", "濃霧鎖城，視線不清，世界變得模糊而神秘。"],
             mood: ["神秘、迷惘", "鬱悶、窒息感", "夢幻、朦朧"],
-            advice: [
-                "開車請開霧燈，小心路滑與視線不清。",
-                "能見度差，過馬路請特別留意來車。",
-                "如果空氣品質不佳（霾），請佩戴口罩。",
-                "放慢腳步，注意周遭環境變化。"
-            ]
+            advice: ["開車請開霧燈，小心路滑與視線不清。", "能見度差，過馬路請特別留意來車。", "如果空氣品質不佳（霾），請佩戴口罩。", "放慢腳步，注意周遭環境變化。"]
         },
         snow: {
-            desc: [
-                "白色雪花緩緩飄落，世界漸漸變成銀白色。",
-                "狂風捲著大雪，視線幾乎為零，舉步維艱。",
-                "冰冷的空氣中飄著雪花，呼吸都化作白煙。",
-                "積雪覆蓋了大地，周遭變得異常寧靜。"
-            ],
+            desc: ["白色雪花緩緩飄落，世界漸漸變成銀白色。", "狂風捲著大雪，視線幾乎為零，舉步維艱。", "冰冷的空氣中飄著雪花，呼吸都化作白煙。", "積雪覆蓋了大地，周遭變得異常寧靜。"],
             mood: ["純潔、童心", "嚴峻、孤立", "寧靜、平和"],
-            advice: [
-                "注意保暖，戴上手套，享受堆雪人的樂趣。",
-                "❄️ 生存模式：非必要不出門，儲備糧食與暖氣。",
-                "道路可能結冰（黑冰），行走與駕駛需萬分小心。",
-                "穿著防水防滑的鞋子，以免滑倒受傷。"
-            ]
+            advice: ["注意保暖，戴上手套，享受堆雪人的樂趣。", "❄️ 生存模式：非必要不出門，儲備糧食與暖氣。", "道路可能結冰（黑冰），行走與駕駛需萬分小心。", "穿著防水防滑的鞋子，以免滑倒受傷。"]
         }
     },
-    // 溫度與體感感官庫 (Source: Reference 2)
     temp: {
         extreme_hot: { // > 36
             desc: ["酷暑難耐，走在路上一分鐘就汗流浹背。", "像待在巨型吹風機前，柏油路面軟化，熱浪扭曲了視線。", "地表彷彿在燃燒，空氣像滾燙的烙鐵肺部隱隱作痛。"],
@@ -1020,13 +1087,11 @@ const WEATHER_DB = {
             advice: ["專業防寒服，注意走路防滑（黑冰警告）。", "洋蔥式穿法極限，暖暖包必備。減少皮膚外露。", "除非必要，否則盡量待在溫暖的室內。"]
         }
     },
-    // 動態疊加邏輯 (Source: Reference 1 & 2)
     modifiers: {
         wind: ["🌬️ 外面風很大，體感溫度會更低，建議穿著防風外套。", "強風呼嘯，路樹搖晃，帽子都快戴不住。", "避免穿著飄逸裙裝，機車族請注意側風。"],
         uv: ["☀️ 紫外線極強 (Extreme)，請務必戴帽、墨鏡並塗抹防曬。", "😎 紫外線偏高，外出建議做好防曬措施。", "陽光咬人，皮膚有灼熱感，請撐陽傘。"],
-        aqi_bad: ["😷 空氣中有明顯的異味與塵土感，宛如毒氣室。", "天空有點灰濛濛，呼吸道稍微敏感。", "AQI警戒：請佩戴口罩，減少戶外逗留時間。"],
-        tsunami: ["🌊 海嘯注意：遠離海灘，注意廣播。", "快跑！往高處跑！不要管天氣如何了，保命要緊！"],
-        earthquake: ["⚠ 地面有些許晃動，像是有大型車經過。", "地震！立即採取趴下、掩護、穩住 (Drop, Cover, Hold on)。"]
+        aqi_bad: ["😷 警告：即時偵測到空氣品質不佳，請佩戴口罩。", "天空有點灰濛濛，呼吸道稍微敏感。", "AQI警戒：目前空氣品質對敏感族群不健康。"],
+        earthquake: ["⚠ 偵測到周邊近期發生顯著地震！", "地震警報：請保持冷靜，確認所在位置安全。", "注意餘震！檢查家中物品是否穩固。"]
     }
 };
 
@@ -1034,15 +1099,16 @@ function getRandom(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function generateWeatherAdvice(temp, code, windSpeed, uvIndex) {
-    // 1. 決定天氣類型 (Map WMO Code to Type)
+// 產生天氣建議 (核心邏輯)
+function generateWeatherAdvice(temp, code, windSpeed, uvIndex, aqi, quake) {
+    // 1. 決定天氣類型
     let type = 'cloudy';
     if (code <= 1) type = 'sunny';
     else if (code <= 3) type = 'cloudy';
     else if (code == 45 || code == 48) type = 'fog';
     else if (code >= 95) type = 'thunder';
     else if (code >= 71 || (code >= 85 && code <= 86)) type = 'snow';
-    else type = 'rain'; // Default rain for other codes
+    else type = 'rain'; 
 
     // 2. 決定溫度區間
     let tempZone = 'comfort';
@@ -1055,39 +1121,44 @@ function generateWeatherAdvice(temp, code, windSpeed, uvIndex) {
     else if (temp > 0) tempZone = 'freezing';
     else tempZone = 'polar';
 
-    // 3. 隨機生成模擬 AQI (因為 API 未提供，為了展示矩陣邏輯而模擬)
-    const simulatedAQI = Math.floor(Math.random() * 160); // 0-160
-    
-    // 4. 開始組合文本
+    // 3. 基礎文本 (隨機組合)
     let baseDesc = getRandom(WEATHER_DB.weather[type].desc);
     let mood = getRandom(WEATHER_DB.weather[type].mood);
     let tempDesc = getRandom(WEATHER_DB.temp[tempZone].desc);
-    let mainAdvice = getRandom(WEATHER_DB.weather[type].advice); // 優先使用天氣建議
+    let mainAdvice = getRandom(WEATHER_DB.weather[type].advice);
     
     // 若極端溫度，優先使用溫度建議
     if (tempZone === 'extreme_hot' || tempZone === 'polar' || tempZone === 'freezing') {
         mainAdvice = getRandom(WEATHER_DB.temp[tempZone].advice);
     }
 
-    // 5. 動態疊加 (Modifiers)
+    // 4. 動態疊加 (根據真實數據)
     let warnings = [];
+    let highlightAlert = false;
     
+    // 地震疊加 (Real Earthquake)
+    if (quake && quake.alert) {
+        warnings.unshift(`🚨 <b>${quake.title}</b> (${quake.timeStr})`);
+        warnings.push(getRandom(WEATHER_DB.modifiers.earthquake));
+        highlightAlert = true;
+    }
+
+    // AQI 疊加 (Real AQI)
+    if (aqi > 100) {
+        warnings.push(getRandom(WEATHER_DB.modifiers.aqi_bad));
+    }
+
     // 風速疊加
     if (windSpeed > 30) {
         warnings.push(getRandom(WEATHER_DB.modifiers.wind));
     }
     
-    // UV 疊加 (僅在晴天或多雲且 UV 高時)
+    // UV 疊加
     if (uvIndex >= 6 && (type === 'sunny' || type === 'cloudy')) {
         warnings.push(getRandom(WEATHER_DB.modifiers.uv));
     }
 
-    // AQI 疊加 (模擬)
-    if (simulatedAQI > 100) {
-        warnings.push(getRandom(WEATHER_DB.modifiers.aqi_bad));
-    }
-
-    // 6. 最終組合 HTML
+    // 5. 輸出 HTML
     let finalHtml = `
         <div style="margin-bottom:6px;"><b>${baseDesc}</b></div>
         <div style="font-size:0.9em; opacity:0.85; margin-bottom:8px;">${tempDesc} 心情：${mood}</div>
@@ -1097,13 +1168,29 @@ function generateWeatherAdvice(temp, code, windSpeed, uvIndex) {
     `;
 
     if (warnings.length > 0) {
-        finalHtml += `<div style="margin-top:8px; color:#ff6b6b; font-weight:600; font-size:0.9em;">
+        let color = highlightAlert ? "#ff4757" : "#ff6b6b";
+        finalHtml += `<div style="margin-top:8px; color:${color}; font-weight:600; font-size:0.9em;">
             ${warnings.join("<br/>")}
         </div>`;
     }
 
     return finalHtml;
 }
+
+// 距離計算 (Haversine Formula) - 用於地震偵測
+function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+  var R = 6371; // km
+  var dLat = deg2rad(lat2-lat1);  
+  var dLon = deg2rad(lon2-lon1); 
+  var a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2)
+    ; 
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  var d = R * c; // Distance in km
+  return d;
+}
+function deg2rad(deg) { return deg * (Math.PI/180) }
 
 async function fetchWeather() {
     let lat, lon;
@@ -1115,7 +1202,7 @@ async function fetchWeather() {
                 (pos) => { getWeatherData(pos.coords.latitude, pos.coords.longitude); },
                 (err) => { 
                     citySelect.value = "25.033,121.565"; 
-                    getWeatherData(25.033, 121.565);
+                    getWeatherData(25.033, 121.565); // Default Taipei
                 }
             );
             return;
@@ -1126,24 +1213,84 @@ async function fetchWeather() {
         }
     } else {
         [lat, lon] = val.split(',');
-        getWeatherData(lat, lon);
+        getWeatherData(parseFloat(lat), parseFloat(lon));
     }
 }
 
 async function getWeatherData(lat, lon) {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code,is_day,windspeed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=auto`;
+    // 1. Weather Data (Add &forecast_days=7 explicit parameter)
+    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code,is_day,windspeed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=auto&forecast_days=7`;
+    
+    // 2. Air Quality Data
+    const aqiUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi,pm2_5`;
+
+    // 3. Earthquake Data
+    const quakeUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson";
+
     try {
-        const res = await fetch(url);
-        const data = await res.json();
-        renderWeather(data);
+        // Use Promise.allSettled to allow some APIs to fail without breaking everything
+        const results = await Promise.allSettled([
+            fetch(weatherUrl),
+            fetch(aqiUrl),
+            fetch(quakeUrl)
+        ]);
+
+        // Process Weather (Critical)
+        let weatherData = null;
+        if(results[0].status === 'fulfilled'){
+             weatherData = await results[0].value.json();
+        } else {
+             throw new Error("Weather API Failed");
+        }
+
+        // Process AQI (Optional)
+        let aqiData = { current: { us_aqi: '--' } };
+        if(results[1].status === 'fulfilled'){
+             aqiData = await results[1].value.json();
+        }
+
+        // Process Earthquake (Optional, might be blocked by CORS)
+        let quakeData = { features: [] };
+        if(results[2].status === 'fulfilled'){
+             quakeData = await results[2].value.json();
+        }
+
+        // Process Earthquake Logic
+        let quakeStatus = { alert: false, title: "", dist: 99999 };
+        if (quakeData.features && quakeData.features.length > 0) {
+            for (let q of quakeData.features) {
+                const qLon = q.geometry.coordinates[0];
+                const qLat = q.geometry.coordinates[1];
+                const dist = getDistanceFromLatLonInKm(lat, lon, qLat, qLon);
+                
+                if (dist < 600) { 
+                    const timeDiff = (new Date().getTime() - q.properties.time) / (1000 * 3600); 
+                    if (timeDiff < 24) { 
+                        quakeStatus = {
+                            alert: true,
+                            title: `M${q.properties.mag} 地震`,
+                            place: q.properties.place,
+                            dist: Math.round(dist),
+                            timeStr: new Date(q.properties.time).toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'})
+                        };
+                        break; 
+                    }
+                }
+            }
+        }
+
+        renderWeather(weatherData, aqiData, quakeStatus);
+
     } catch(e) {
-        console.error(e);
+        console.error("Fetch Error:", e);
         document.getElementById('weatherDesc').textContent = "更新失敗";
-        document.getElementById('clothingAdvice').textContent = "無法取得天氣資訊，請檢查網路連線。";
+        document.getElementById('clothingAdvice').textContent = "⚠️ 無法取得完整數據，請檢查網路連線。";
     }
 }
 
-function renderWeather(data) {
+function renderWeather(data, aqiData, quakeStatus) {
+    if(!data || !data.current || !data.daily) return;
+
     const current = data.current;
     const daily = data.daily;
     const info = getWeatherInfo(current.weather_code, current.is_day);
@@ -1153,24 +1300,58 @@ function renderWeather(data) {
     document.getElementById('weatherDesc').textContent = info.text;
     document.getElementById('weatherIcon').className = `ph ${info.icon} weather-icon-lg`;
     
-    const uvMax = daily.uv_index_max[0];
+    const uvMax = daily.uv_index_max ? daily.uv_index_max[0] : '--';
     const windKmh = current.windspeed_10m;
     document.getElementById('uvIndex').textContent = uvMax;
     document.getElementById('windSpeed').textContent = `${windKmh} km/h`;
 
-    const sunrise = new Date(daily.sunrise[0]).toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'});
-    const sunset = new Date(daily.sunset[0]).toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'});
-    document.getElementById('sunTime').textContent = `${sunrise} / ${sunset}`;
+    // Render AQI
+    const usAqi = aqiData.current ? aqiData.current.us_aqi : '--';
+    const aqiEl = document.getElementById('aqiVal');
+    aqiEl.textContent = usAqi;
+    if (usAqi > 150) aqiEl.style.color = '#8e44ad';
+    else if (usAqi > 100) aqiEl.style.color = '#e74c3c';
+    else if (usAqi > 50) aqiEl.style.color = '#f39c12';
+    else aqiEl.style.color = '#2ecc71';
 
-    // 使用新的生成矩陣邏輯
-    const adviceText = generateWeatherAdvice(current.temperature_2m, current.weather_code, windKmh, uvMax);
+    // Render Earthquake Status
+    const quakeBox = document.getElementById('quakeBox');
+    const quakeEl = document.getElementById('quakeStatus');
+    if (quakeStatus.alert) {
+        quakeBox.classList.add('quake-alert');
+        quakeEl.innerHTML = `<span style="color:#c0392b;">${quakeStatus.title}</span><br/>距 ${quakeStatus.dist}km`;
+    } else {
+        quakeBox.classList.remove('quake-alert');
+        quakeEl.textContent = "無顯著警報";
+    }
+
+    // Sunrise/Sunset safety check
+    if(daily.sunrise && daily.sunrise[0]) {
+        const sunrise = new Date(daily.sunrise[0]).toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'});
+        const sunset = new Date(daily.sunset[0]).toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'});
+        // Note: I removed the Sun time from grid to save space, but kept logic if you add it back.
+    }
+
+    // Generate Advice
+    const adviceText = generateWeatherAdvice(
+        current.temperature_2m, 
+        current.weather_code, 
+        windKmh, 
+        uvMax, 
+        usAqi, 
+        quakeStatus
+    );
     document.getElementById('clothingAdvice').innerHTML = adviceText;
 
+    // Forecast Grid
     const grid = document.getElementById('forecastGrid');
     grid.innerHTML = '';
     const days = ['日','一','二','三','四','五','六'];
     
-    for(let i=0; i<7; i++) {
+    // Ensure loop doesn't exceed data length
+    const limit = Math.min(7, daily.time.length);
+
+    for(let i=0; i<limit; i++) {
         const date = new Date(daily.time[i]);
         const dInfo = getWeatherInfo(daily.weather_code[i], 1); 
         const dayName = i === 0 ? '今日' : days[date.getDay()];
