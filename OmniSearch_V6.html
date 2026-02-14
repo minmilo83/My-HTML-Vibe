@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#e0eafc" />
+<title>全能批次搜尋控制台 (Mimi Pro Ver.)</title>
+
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+<style>
+/* =======================
+   1. Design Tokens (變數設定)
+   ======================= */
+:root {
+  /* --- 淺色模式 (Light Mode) --- */
+  --bg-gradient: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+  --text-color: #2d3436;
+  
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-thickness: inset 0 1px 2px rgba(255, 255, 255, 0.95), inset 0 -1px 2px rgba(0, 0, 0, 0.03);
+  --glass-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 5px 15px rgba(0,0,0,0.05);
+  
+  --btn-bg: rgba(255, 255, 255, 0.5);
+  --btn-shadow: 0 8px 20px rgba(180, 190, 200, 0.2), inset 0 1px 1px rgba(255,255,255,1);
+  
+  /* 游標設定 */
+  --cursor-size: 60px;
+  --cursor-bg: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.02) 10%, transparent 60%);
+  --cursor-backdrop: blur(5px) brightness(1.1) saturate(1.2);
+  --cursor-border: 1px solid rgba(255, 255, 255, 0.4);
+  --cursor-shadow: inset 0 0 15px rgba(255, 255, 255, 0.6), 0 10px 25px rgba(0, 0, 0, 0.1);
+      
+  --flip-bg: #2d3436;
+  --flip-text: #dfe6e9;
+
+  --weather-bg: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
+  --weather-text: #2d3436;
+}
+
+[data-theme="dark"] {
+  --bg-gradient: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+  --text-color: #e0f7fa;
+  
+  --glass-bg: rgba(20, 20, 30, 0.5);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-thickness: inset 0 1px 1px rgba(255, 255, 255, 0.15), inset 0 -1px 10px rgba(0,0,0,0.3);
+  --glass-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+  
+  --btn-bg: rgba(255, 255, 255, 0.08);
+  --btn-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1);
+  
+  --cursor-bg: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.02) 10%, transparent 60%);
+  --cursor-backdrop: blur(4px) brightness(1.3);
+  --cursor-border: 1px solid rgba(255, 255, 255, 0.2);
+  --cursor-shadow: inset 0 0 15px rgba(255, 255, 255, 0.1), 0 0 20px rgba(255, 255, 255, 0.2);
+
+  --flip-bg: #e0f7fa;
+  --flip-text: #0f2027;
+
+  --weather-bg: linear-gradient(120deg, #2c3e50 0%, #4ca1af 100%);
+  --weather-text: #fff;
+}
+
+/* =======================
+   2. Base Styles (Cross-Device Optimization)
+   ======================= */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+/* PC預設隱藏系統游標，改用自定義 */
+@media (pointer: fine) {
+    * { cursor: none; }
+}
+
+body {
+  margin: 0; 
+  padding: 40px 20px;
+  /* iOS Safe Area Support */
+  padding-bottom: calc(40px + env(safe-area-inset-bottom));
+  font-family: "Noto Sans TC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg-gradient);
+  color: var(--text-color);
+  min-height: 100vh;
+  display: flex; justify-content: center; align-items: flex-start;
+  transition: background 0.5s ease, color 0.5s ease;
+  overflow-x: hidden;
+}
+
+/* Desktop Grid Layout */
+.container {
+  display: grid; grid-template-columns: 1fr 400px; gap: 30px;
+  width: 100%; max-width: 1100px;
+}
+
+.glass-card {
+  padding: 30px; border-radius: 32px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(30px) saturate(120%);
+  -webkit-backdrop-filter: blur(30px) saturate(120%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), var(--glass-thickness); 
+  transition: all 0.3s ease;
+  display: flex; flex-direction: column; 
+}
+
+h1 { margin: 0 0 10px 0; font-weight: 700; letter-spacing: 1px; font-size: 2em; line-height: 1.2; }
+.subtitle { font-size: 0.9em; opacity: 0.8; margin-bottom: 20px; }
+.warning-text { color: #ff6b6b; font-weight: 600; margin-bottom: 15px; font-size: 0.9em; }
+[data-theme="dark"] .warning-text { color: #ff8787; }
+
+#wordInput {
+  width: 100%; min-height: 150px; padding: 20px;
+  border-radius: 24px; border: 1px solid var(--glass-border);
+  background: rgba(255,255,255,0.15); 
+  color: var(--text-color); 
+  font-size: 16px; /* Prevents zoom on iOS */
+  line-height: 1.6;
+  outline: none; transition: 0.3s;
+  box-shadow: inset 2px 2px 10px rgba(0,0,0,0.05); 
+  resize: vertical;
+  font-family: inherit;
+}
+#wordInput:focus {
+  background: rgba(255,255,255,0.3);
+  box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05), 0 0 0 1px var(--text-color);
+}
+
+/* =======================
+   3. Buttons
+   ======================= */
+.button-group { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 25px; }
+
+.search-button {
+  padding: 14px 28px;
+  border-radius: 50px;
+  border: 1px solid rgba(255,255,255,0.4);
+  background: var(--btn-bg);
+  box-shadow: var(--btn-shadow);
+  color: var(--text-color);
+  font-weight: 600; font-size: 15px;
+  backdrop-filter: blur(15px);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+  display: flex; align-items: center; gap: 8px;
+  position: relative; overflow: hidden;
+  touch-action: manipulation;
+  cursor: pointer;
+  flex: 1 1 auto; /* Responsive flex */
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.btn-youtube {
+  background: linear-gradient(135deg, rgba(255,0,0,0.1) 0%, rgba(255,255,255,0.2) 100%);
+  border-color: rgba(255,0,0,0.3);
+}
+.btn-youtube:hover {
+  background: linear-gradient(135deg, rgba(255,0,0,0.2) 0%, rgba(255,255,255,0.4) 100%);
+  box-shadow: 0 10px 25px rgba(255, 0, 0, 0.2);
+}
+.btn-web {
+  background: linear-gradient(135deg, rgba(66, 133, 244, 0.1) 0%, rgba(255,255,255,0.2) 100%);
+  border-color: rgba(66, 133, 244, 0.3);
+}
+.btn-web:hover {
+  background: linear-gradient(135deg, rgba(66, 133, 244, 0.2) 0%, rgba(255,255,255,0.4) 100%);
+  box-shadow: 0 10px 25px rgba(66, 133, 244, 0.25);
+}
+
+@media (hover: hover) {
+  .search-button:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15), inset 0 0 20px rgba(255,255,255,0.6);
+    border-color: rgba(255,255,255,0.9);
+  }
+}
+
+.search-button:active, #themeToggle:active, #langFab:active, .lang-opt:active {
+  animation: liquidClick 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@keyframes liquidClick {
+  0% { transform: scale(1); border-radius: 50px; }
+  30% { transform: scale(0.95); border-radius: 40px 60px 40px 60px / 50px 40px 60px 50px; }
+  60% { transform: scale(1.02); border-radius: 55px 45px 60px 40px / 45px 55px 40px 60px; }
+  100% { transform: scale(1); border-radius: 50px; }
+}
+
+#themeToggle {
+    width: 48px; height: 48px; padding: 0; border-radius: 50%; 
+    display: flex; align-items: center; justify-content: center; font-size: 22px;
+    flex-shrink: 0;
+}
+#allButton {
+  width: 64px; height: 64px; padding: 0;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 26px;
+  background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+  color: white; border: none;
+  box-shadow: 0 10px 25px rgba(161, 140, 209, 0.5);
+  flex-grow: 0;
+}
+
+/* =======================
+   3.5 Status Board (Updated for Time)
+   ======================= */
+#statusBoard {
+  margin-top: 15px; padding: 12px 25px;
+  background: rgba(255,255,255,0.25);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
+  font-size: 0.9em; font-weight: 500;
+  opacity: 0; transform: translateY(-10px);
+  transition: all 0.3s ease;
+  pointer-events: none;
+  height: 0; overflow: hidden;
+  text-align: center;
+}
+#statusBoard.active {
+  opacity: 1; transform: translateY(0); pointer-events: auto; height: auto; margin-bottom: 10px;
+}
+.status-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.status-label { font-size: 0.75em; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.5px; }
+.status-val { font-weight: 700; font-size: 1.1em; font-variant-numeric: tabular-nums; }
+.status-timer { color: #ff6b6b; }
+.status-total { color: #2ecc71; }
+
+/* =======================
+   4. Weather Widget (Responsive & Interactive)
+   ======================= */
+#weatherCard {
+    background: var(--weather-bg); color: var(--weather-text);
+    padding: 0; overflow: hidden; position: relative;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-top: 30px; border: none;
+}
+/* Removed .interactive from the main header container to prevent cursor bloat */
+.weather-header { 
+    padding: 20px 25px 10px 25px; 
+    display: flex; flex-direction: column; 
+    gap: 15px; 
+    cursor: default;
+}
+.weather-top-row {
+    display: flex; justify-content: space-between; align-items: flex-start;
+}
+.weather-main { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+.weather-icon-lg { font-size: 48px; }
+.weather-temp { font-size: 36px; font-weight: 700; white-space: nowrap; }
+.weather-meta { display: flex; flex-direction: column; font-size: 0.9em; opacity: 0.9; margin-top:5px; }
+
+/* Weather Controls (RWD) */
+.weather-controls {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    background: rgba(255,255,255,0.15);
+    padding: 8px 12px;
+    border-radius: 16px;
+    backdrop-filter: blur(5px);
+    max-width: 100%;
+}
+.weather-city-select {
+    background: transparent; border: none; color: currentColor;
+    font-size: 0.95em; font-weight: 700; cursor: pointer;
+    outline: none; padding: 4px; margin: 0;
+    appearance: none; -webkit-appearance: none; 
+    border-bottom: 1px dashed rgba(255,255,255,0.5);
+    max-width: 120px;
+    text-overflow: ellipsis; overflow: hidden; white-space: nowrap;
+}
+.weather-city-select option { background: #fff; color: #333; }
+
+.search-divider { width: 1px; height: 16px; background: rgba(255,255,255,0.4); }
+
+.weather-search-input {
+    background: transparent; border: none;
+    color: currentColor; padding: 4px; 
+    font-size: 16px; /* Prevent iOS Zoom */
+    outline: none; width: 100px;
+    border-bottom: 1px solid transparent;
+    transition: 0.3s;
+    cursor: text;
+}
+.weather-search-input:focus {
+    border-bottom: 1px solid rgba(255,255,255,0.8);
+    width: 130px;
+}
+.weather-search-input::placeholder { color: rgba(255,255,255,0.5); }
+.weather-search-btn {
+    background: rgba(255,255,255,0.2); border: none; color: currentColor;
+    width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: 0.2s;
+    flex-shrink: 0;
+}
+.weather-search-btn:hover { background: rgba(255,255,255,0.4); }
+
+/* Details & Advice */
+.weather-advice { padding: 15px 25px 25px 25px; font-size: 0.95em; font-weight: 500; display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; }
+.weather-details { max-height: 0; opacity: 0; transition: all 0.5s ease; background: rgba(0,0,0,0.05); padding: 0 25px; }
+#weatherCard.expanded .weather-details { max-height: 800px; opacity: 1; padding: 25px; }
+
+/* Responsive Grid for Forecast */
+.forecast-grid { 
+    display: grid; 
+    grid-template-columns: repeat(7, 1fr); 
+    gap: 8px; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 15px; 
+}
+.forecast-day { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.75em; text-align: center; }
+
+/* Responsive Grid for Details */
+.detail-grid { 
+    display: grid; 
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 8px; margin-bottom: 20px; 
+}
+.detail-item { background: rgba(255,255,255,0.15); padding: 10px 5px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.detail-label { font-size: 0.7em; opacity: 0.8; margin-bottom: 4px; white-space: nowrap; }
+.detail-val { font-weight: 700; font-size: 0.95em; word-break: break-word; }
+.toggle-arrow { transition: transform 0.4s; position: absolute; top: 25px; right: 25px; cursor: pointer; }
+#weatherCard.expanded .toggle-arrow { transform: rotate(180deg); }
+
+/* Earthquake Pulse Animation */
+@keyframes quakePulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 107, 107, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
+}
+.quake-alert {
+    animation: quakePulse 2s infinite;
+    border: 1px solid #ff6b6b !important;
+    background: rgba(255, 107, 107, 0.25) !important;
+}
+
+/* =======================
+   5. Custom Cursor
+   ======================= */
+#customCursor {
+  position: fixed; top: 0; left: 0; z-index: 9999;
+  width: var(--cursor-size); height: var(--cursor-size);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: width 0.2s, height 0.2s, border-radius 0.2s; 
+  background: var(--cursor-bg);
+  backdrop-filter: var(--cursor-backdrop); 
+  -webkit-backdrop-filter: var(--cursor-backdrop);
+  border: var(--cursor-border); border-radius: 50%;
+  box-shadow: var(--cursor-shadow);
+  display: none; 
+}
+@media (pointer: fine) {
+    #customCursor { display: block; }
+    body.hover-active #customCursor {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255,255,255,0.4);
+      backdrop-filter: none;
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.5);
+    }
+}
+
+/* =======================
+   6. Flip Clock
+   ======================= */
+.clock-container {
+  display: flex; justify-content: center; align-items: center;
+  min-height: 100px; cursor: pointer; user-select: none;
+  position: relative; width: 100%;
+}
+.clock-digital { font-size: 2.5em; font-weight: 700; font-variant-numeric: tabular-nums; }
+.clock-analog {
+  width: 90px; height: 90px; border-radius: 50%;
+  border: 3px solid var(--text-color); position: relative;
+  background: rgba(255,255,255,0.1);
+}
+.hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom center; background: var(--text-color); border-radius: 2px; }
+.hand.hour { width: 4px; height: 25px; transform: translateX(-50%); }
+.hand.min { width: 3px; height: 35px; transform: translateX(-50%); }
+.hand.sec { width: 2px; height: 40px; background: #ff6b6b; transform: translateX(-50%); }
+.center-dot { position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; background: var(--text-color); border-radius: 50%; transform: translate(-50%, -50%); }
+
+.clock-flip { display: flex; gap: 10px; font-family: 'Courier New', monospace; font-weight: bold; }
+.flip-unit {
+  position: relative; width: 40px; height: 60px; /* Mobile Size */
+  background: var(--flip-bg); color: var(--flip-text);
+  border-radius: 6px; font-size: 32px; line-height: 60px; text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2); perspective: 400px; 
+}
+@media (min-width: 600px) {
+    .flip-unit { width: 50px; height: 70px; font-size: 40px; line-height: 70px; border-radius: 8px; }
+}
+.flip-top, .flip-bottom, .flip-leaf-front, .flip-leaf-back {
+  position: absolute; left: 0; width: 100%; height: 50%;
+  overflow: hidden; background: var(--flip-bg); backface-visibility: hidden; 
+}
+.flip-top { top: 0; border-radius: 6px 6px 0 0; border-bottom: 1px solid rgba(0,0,0,0.3); z-index: 1; }
+.flip-bottom { bottom: 0; border-radius: 0 0 6px 6px; line-height: 0; z-index: 0; }
+.flip-leaf-front { top: 0; border-radius: 6px 6px 0 0; transform-origin: bottom; z-index: 2; border-bottom: 1px solid rgba(0,0,0,0.3); }
+.flip-leaf-back { bottom: 0; border-radius: 0 0 6px 6px; line-height: 0; transform-origin: top; transform: rotateX(180deg); z-index: 2; }
+.flipping .flip-leaf-front { animation: flipDownFront 0.5s cubic-bezier(0.455, 0.030, 0.515, 0.955) forwards; }
+.flipping .flip-leaf-back { animation: flipDownBack 0.5s cubic-bezier(0.455, 0.030, 0.515, 0.955) forwards; }
+@keyframes flipDownFront { 0% { transform: rotateX(0deg); } 100% { transform: rotateX(-180deg); } }
+@keyframes flipDownBack { 0% { transform: rotateX(180deg); } 100% { transform: rotateX(0deg); } }
+
+/* =======================
+   7. Pomodoro
+   ======================= */
+.pomo-container {
+  display: flex; flex-direction: column; align-items: center; position: relative;
+  width: 240px; height: 240px; margin: 0 auto;
+}
+.ring-svg { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+.ring-track { stroke: rgba(128,128,128, 0.15); stroke-width: 12; fill: none; }
+[data-theme="dark"] .ring-track { stroke: rgba(255,255,255,0.1); }
+.ring-progress {
+  fill: none; stroke: url(#gradientStroke); stroke-width: 12; stroke-linecap: round;
+  stroke-dasharray: 628; stroke-dashoffset: 0; 
+  filter: drop-shadow(0 0 5px rgba(0,198,251,0.5)); 
+}
+.ring-handle {
+  position: absolute; top: 50%; left: 50%; 
+  width: 32px; height: 32px; background: #fff; border-radius: 50%;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  cursor: grab; pointer-events: none; transform: translate(-50%, -50%); z-index: 20;
+}
+.ring-overlay {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  border-radius: 50%; cursor: grab; z-index: 10;
+  touch-action: none; /* Crucial for mobile drag */
+}
+.ring-overlay:active { cursor: grabbing; }
+.time-display {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  text-align: center; pointer-events: none;
+}
+#timeLeft { font-size: 36px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.time-label { font-size: 14px; opacity: 0.7; }
+.pomo-controls {
+  display: flex; gap: 15px; margin-top: 25px; justify-content: center; width: 100%;
+}
+
+/* =======================
+   8. Language Menu
+   ======================= */
+@keyframes liquidMorphOpen {
+  0% { opacity: 0; transform: scale(0.2) translate(100px, 100px); border-radius: 50%; }
+  40% { opacity: 1; transform: scale(1.1) translate(-10px, -20px); border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+  70% { transform: scale(0.95) translate(5px, 5px); border-radius: 40% 60% 60% 40% / 40% 50% 50% 60%; }
+  100% { opacity: 1; transform: scale(1) translate(0, 0); border-radius: 16px; }
+}
+
+#langFab {
+  position: fixed; 
+  bottom: calc(30px + env(safe-area-inset-bottom)); 
+  right: 30px;
+  width: 60px; height: 60px; border-radius: 50%;
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  backdrop-filter: blur(10px);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; box-shadow: var(--glass-shadow);
+  z-index: 1000; transition: 0.3s; cursor: pointer;
+}
+#langFab:hover { transform: scale(1.1) rotate(20deg); }
+
+#langMenu {
+  position: fixed; 
+  bottom: calc(100px + env(safe-area-inset-bottom)); 
+  right: 30px;
+  background: var(--glass-bg); backdrop-filter: blur(20px);
+  padding: 10px; 
+  border-radius: 20px;
+  border: 1px solid var(--glass-border);
+  display: none; flex-direction: column; gap: 5px;
+  box-shadow: var(--glass-shadow); z-index: 999;
+  transform-origin: bottom right;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+#langMenu.active {
+  display: flex;
+  animation: liquidMorphOpen 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.lang-opt {
+  padding: 10px 20px; border-radius: 8px; font-weight: 600; 
+  transition: 0.2s; text-align: center; color: var(--text-color);
+  white-space: nowrap; cursor: pointer;
+}
+.lang-opt:hover { background: rgba(255,255,255,0.2); }
+
+/* =======================
+   9. Media Queries (RWD Layout)
+   ======================= */
+
+/* Tablet & Mobile Breakpoint */
+@media (max-width: 900px) {
+  .container { grid-template-columns: 1fr; }
+  /* Ensure cursor is hidden on touch devices */
+  * { cursor: auto !important; }
+  #customCursor { display: none !important; }
+}
+
+/* Small Tablet & Mobile */
+@media (max-width: 600px) {
+  body { padding: 20px 15px; padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
+  .glass-card { padding: 20px; border-radius: 24px; }
+  
+  h1 { font-size: 1.6em; }
+  .button-group { gap: 10px; }
+  
+  /* Stack weather header elements vertically */
+  .weather-header { padding: 15px; }
+  .weather-top-row { flex-direction: column; position: relative; }
+  .weather-main { width: 100%; justify-content: flex-start; gap: 10px; }
+  .toggle-arrow { top: 0px; right: 0px; }
+  
+  .weather-controls { width: 100%; margin-top: 10px; justify-content: space-between; }
+  .weather-city-select { max-width: 140px; }
+  .weather-search-input { width: 80px; }
+  .weather-search-input:focus { width: 100%; }
+  
+  .detail-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  
+  /* Horizontal scroll for 7-day forecast on mobile */
+  .forecast-grid {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+  .forecast-day {
+    min-width: 70px;
+    scroll-snap-align: start;
+    background: rgba(255,255,255,0.1);
+    padding: 8px;
+    border-radius: 8px;
+  }
+}
+</style>
+</head>
+<body data-theme="light">
+
+<div id="customCursor"></div>
+
+<div id="langFab" class="interactive">🌐</div>
+<div id="langMenu">
+  <div class="lang-opt interactive" data-lang="en">English</div>
+  <div class="lang-opt interactive" data-lang="zh-TW">繁體中文</div>
+  <div class="lang-opt interactive" data-lang="zh-CN">简体中文</div>
+  <div class="lang-opt interactive" data-lang="ja">日本語</div>
+  <div class="lang-opt interactive" data-lang="ko">한국어</div>
+  <div class="lang-opt interactive" data-lang="es">Español</div>
+  <div class="lang-opt interactive" data-lang="pt">Português</div>
+  <div class="lang-opt interactive" data-lang="vi">Tiếng Việt</div>
+  <div class="lang-opt interactive" data-lang="bn">বাংলা</div>
+  <div class="lang-opt interactive" data-lang="hi">हिन्दी</div>
+  <div class="lang-opt interactive" data-lang="ru">Русский</div>
+  <div class="lang-opt interactive" data-lang="yue">粵語</div>
+</div>
+
+<div class="container">
+  
+  <div class="glass-card">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+      <div>
+        <h1 data-i18n="title">全能批次搜尋控制台</h1>
+        <div class="subtitle" data-i18n="subtitle">整合搜尋引擎、字典與實用工具的中心</div>
+      </div>
+      <button class="search-button interactive" id="themeToggle">🌙</button>
+    </div>
+
+    <div class="warning-text" data-i18n="warning">⚠️ 若無法開啟，請檢查瀏覽器是否「阻擋彈出視窗」</div>
+
+    <textarea id="wordInput" placeholder="請輸入關鍵字或網址，一行一個。&#10;例如：&#10;天氣&#10;www.google.com&#10;https://www.youtube.com"></textarea>
+
+    <div id="statusBoard">
+        <div class="status-item">
+            <span class="status-label" data-i18n="statusProgress">進度</span>
+            <span class="status-val" id="stProgress">0 / 0</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label" data-i18n="timeTotal">預計總時</span>
+            <span class="status-val status-total" id="stTotalTime">--</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label" data-i18n="timeLeft">剩餘時間</span>
+            <span class="status-val status-timer" id="stRemainTime">--</span>
+        </div>
+    </div>
+
+    <div class="button-group">
+      <button class="search-button interactive" onclick="searchDict(0)" data-i18n="cambridge">劍橋詞典</button>
+      <button class="search-button interactive" onclick="searchDict(1)" data-i18n="dreye">譯典通</button>
+      
+      <button class="search-button btn-youtube interactive" onclick="searchYoutube()">
+        <i class="ph ph-youtube-logo" style="font-size:1.2em;"></i> YouTube
+      </button>
+
+      <button class="search-button btn-web interactive" onclick="searchWeb()" data-i18n="googleweb">
+         <i class="ph ph-globe" style="font-size:1.2em;"></i> Google / Web
+      </button>
+
+      <button class="search-button interactive" id="allButton" onclick="searchAll()">🟣</button>
+    </div>
+
+    <div id="weatherCard" class="glass-card">
+        <div class="weather-header" onclick="toggleWeather()">
+            <div class="weather-top-row">
+                <div class="weather-main">
+                    <i id="weatherIcon" class="ph ph-cloud-sun weather-icon-lg"></i>
+                    <div>
+                        <div class="weather-controls" onclick="event.stopPropagation()">
+                            <select id="citySelect" class="weather-city-select interactive">
+                                <option value="auto">📍 自動偵測</option>
+                                <option value="25.033,121.565">Taipei</option>
+                                <option value="24.147,120.673">Taichung</option>
+                                <option value="22.627,120.301">Kaohsiung</option>
+                                <option value="24.813,120.967">Hsinchu</option>
+                                <option value="22.999,120.226">Tainan</option>
+                                <option value="35.689,139.691">Tokyo</option>
+                                <option value="40.712,-74.006">New York</option>
+                                <option value="51.507,-0.127">London</option>
+                            </select>
+                            <div class="search-divider"></div>
+                            <input type="text" id="citySearchInput" class="weather-search-input" placeholder="🔍 Search..." onkeypress="handleEnter(event)">
+                            <button class="weather-search-btn interactive" onclick="searchCityLocation()">
+                                <i class="ph ph-magnifying-glass"></i>
+                            </button>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:10px; margin-top:5px;">
+                            <span id="weatherTemp" class="weather-temp">--°</span>
+                        </div>
+                        <div class="weather-meta">
+                            <span id="weatherDesc">載入中...</span>
+                            <span id="weatherFeels">體感 --°</span>
+                        </div>
+                    </div>
+                </div>
+                <i class="ph ph-caret-down toggle-arrow interactive" style="font-size:24px;"></i>
+            </div>
+        </div>
+        
+        <div class="weather-advice">
+             <i class="ph ph-coat-hanger" style="font-size:1.5em; flex-shrink:0; margin-top:2px;"></i>
+             <span id="clothingAdvice">正在分析天氣與環境數據...</span>
+        </div>
+
+        <div class="weather-details">
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="detail-label">紫外線 (UV)</span>
+                    <span class="detail-val" id="uvIndex">--</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">空氣品質 (AQI)</span>
+                    <span class="detail-val" id="aqiVal">--</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">風速 (Wind)</span>
+                    <span class="detail-val" id="windSpeed">-- km/h</span>
+                </div>
+                <div class="detail-item" id="quakeBox">
+                    <span class="detail-label">地震 (近24h)</span>
+                    <span class="detail-val" id="quakeStatus" style="font-size:0.8em;">偵測中</span>
+                </div>
+            </div>
+            <div style="font-size:0.8em; opacity:0.7; margin-bottom:5px;">未來 7 日預報</div>
+            <div class="forecast-grid" id="forecastGrid"></div>
+            <div style="margin-top:15px; font-size:0.65em; opacity:0.4; text-align:center;">
+                Data: Open-Meteo & USGS (Earthquake)
+            </div>
+        </div>
+    </div>
+
+    <div class="subtitle" style="margin-top:20px; font-size: 0.85em;">
+      <span data-i18n="usage">🎯 使用說明：</span>
+      <ul style="margin: 5px 0 0 20px; padding:0;">
+        <li data-i18n="tip1">支援多行輸入，紫色按鈕可一鍵全開。</li>
+        <li data-i18n="tip2">點擊天氣卡片可展開查看詳細資訊。</li>
+        <li data-i18n="tip3">番茄鐘慢速拖曳可微調時間，快速拖曳可大幅調整。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="display:flex; flex-direction: column; gap:30px;">
+    
+    <div class="glass-card" id="clockCard" style="padding: 25px; align-items: center; justify-content: center;">
+      <div class="clock-container"></div>
+      <div class="clock-hint" style="font-size: 0.7em; opacity: 0.5; margin-top:5px;">Click to switch</div>
+    </div>
+
+    <div class="glass-card">
+      <div class="pomo-container">
+        <svg class="ring-svg" viewBox="0 0 220 220">
+          <defs>
+            <linearGradient id="gradientStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#00c6fb" />
+              <stop offset="100%" stop-color="#005bea" />
+            </linearGradient>
+          </defs>
+          <circle class="ring-track" cx="110" cy="110" r="100"></circle>
+          <circle class="ring-progress" id="ringProgress" cx="110" cy="110" r="100"></circle>
+        </svg>
+        <div class="ring-overlay" id="ringOverlay"></div>
+        <div class="ring-handle" id="ringHandle"></div>
+        
+        <div class="time-display">
+          <div id="timeLeft">30:00</div>
+          <div class="time-label" data-i18n="dragTip">拖曳調整</div>
+        </div>
+      </div>
+
+      <div class="pomo-controls">
+        <button class="search-button interactive" id="startBtn" data-i18n="start">開始</button>
+        <button class="search-button interactive" id="resetBtn" data-i18n="reset">重置</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ===================================
+// 1. Cursor & Interaction
+// ===================================
+const cursor = document.getElementById('customCursor');
+let mouseX = 0, mouseY = 0, cursorX = 0, cursorY = 0;
+const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+if (!isTouchDevice) {
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX; mouseY = e.clientY;
+      if (isDragging) handleDrag(e.clientX, e.clientY);
+    });
+
+    function animateCursor() {
+      const dt = 0.2; 
+      cursorX += (mouseX - cursorX) * dt;
+      cursorY += (mouseY - cursorY) * dt;
+      cursor.style.left = cursorX + 'px';
+      cursor.style.top = cursorY + 'px';
+      requestAnimationFrame(animateCursor);
+    }
+    animateCursor();
+}
+
+function initInteractive() {
+    if(isTouchDevice) return;
+    
+    // Clear old listeners first if re-initializing (though logic here runs once)
+    document.querySelectorAll('.interactive').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        document.body.classList.add('hover-active');
+        const rect = el.getBoundingClientRect();
+        // Just slightly larger than the element for the spotlight effect
+        cursor.style.width = (rect.width + 10) + 'px';
+        cursor.style.height = (rect.height + 10) + 'px';
+        cursor.style.borderRadius = getComputedStyle(el).borderRadius;
+      });
+      el.addEventListener('mouseleave', () => {
+        document.body.classList.remove('hover-active');
+        cursor.style.width = 'var(--cursor-size)';
+        cursor.style.height = 'var(--cursor-size)';
+        cursor.style.borderRadius = '50%';
+        el.style.transform = 'translate(0, 0)';
+      });
+      el.addEventListener('mousemove', (e) => {
+        if(document.body.classList.contains('hover-active')){
+            const rect = el.getBoundingClientRect();
+            const centerX = rect.left + rect.width/2;
+            const centerY = rect.top + rect.height/2;
+            el.style.transform = `translate(${(e.clientX - centerX)*0.15}px, ${(e.clientY - centerY)*0.15}px)`;
+        }
+      });
+    });
+}
+initInteractive();
+
+// ===================================
+// 2. Search Engine Functions & Logic
+// ===================================
+const DICT_URLS = [
+  "https://dictionary.cambridge.org/zht/%E8%A9%9E%E5%85%B8/%E8%8B%B1%E8%AA%9E-%E6%BC%A2%E8%AA%9E-%E7%B9%81%E9%AB%94/",
+  "https://yun.dreye.com/dict_new/dict.php?w="
+];
+const YOUTUBE_URL = "https://www.youtube.com/results?search_query=";
+
+const statusBoard = document.getElementById('statusBoard');
+const stProgress = document.getElementById('stProgress');
+const stTotalTime = document.getElementById('stTotalTime');
+const stRemainTime = document.getElementById('stRemainTime');
+
+function getLines() {
+    const input = document.getElementById('wordInput').value.trim();
+    if(!input) return [];
+    return input.split('\n').map(w => w.trim()).filter(w => w);
+}
+
+function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function randomRange(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function formatTime(seconds) {
+    if (seconds < 60) return `${seconds.toFixed(0)}s`;
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}m ${s}s`;
+}
+
+function updateStatus(opened, total, estTotalSec, remainSec) {
+    statusBoard.classList.add('active');
+    stProgress.textContent = `${opened} / ${total}`;
+    stTotalTime.textContent = formatTime(estTotalSec);
+    stRemainTime.textContent = remainSec <= 0 ? '完成' : formatTime(remainSec);
+}
+
+async function processBatch(type) {
+    const list = getLines();
+    const total = list.length;
+    
+    if (total === 0) return;
+
+    if (total > 10 && isTouchDevice) {
+        alert("⚠️ 提醒：在手機上批量開啟大量分頁可能會被瀏覽器阻擋。");
+    }
+
+    let openedCount = 0;
+    
+    // --- 調整開啟間隔的邏輯 (New Interval Logic) ---
+    let delayMin, delayMax;
+    
+    if (total <= 30) {
+        delayMin = 200; delayMax = 300; // 30個以內：維持現狀 (快)
+    } else if (total <= 75) {
+        delayMin = 1000; delayMax = 3000; // 31-75個：1~3秒
+    } else {
+        delayMin = 9000; delayMax = 11000; // >75個：9~11秒
+    }
+
+    // 計算預計總時間 (Estimated Total Time)
+    // 使用平均延遲時間來估算： (min+max)/2 * (total items)
+    const avgDelayMs = (delayMin + delayMax) / 2;
+    const estTotalSec = (total * avgDelayMs) / 1000;
+
+    updateStatus(0, total, estTotalSec, estTotalSec);
+
+    for (let i = 0; i < total; i++) {
+        const w = list[i];
+        let url = "";
+
+        if (type === 'web') {
+            // 自動偵測網址或搜尋 (Auto Detect URL)
+            const isUrl = w.match(/^(http|https):\/\//i) || w.match(/^www\./i) || w.includes('.com') || w.includes('.org') || w.includes('.net') || w.includes('.tw') || w.includes('.io');
+            if (isUrl) url = w.match(/^(http|https):\/\//i) ? w : 'http://' + w;
+            else url = "https://www.google.com/search?q=" + encodeURIComponent(w);
+        } else if (type === 'youtube') {
+            url = YOUTUBE_URL + encodeURIComponent(w);
+        } else if (type === 'dict0') {
+            url = DICT_URLS[0] + w.toLowerCase().replace(/\s/g, '-');
+        } else if (type === 'dict1') {
+            url = DICT_URLS[1] + w.replace(/\s/g, '+') + "&hidden_codepage=01";
+        }
+
+        const win = window.open(url, '_blank');
+        if (win) {
+            try { win.blur(); } catch(e){}
+            try { window.focus(); } catch(e){}
+            setTimeout(() => { try { window.focus(); } catch(e){} }, 100);
+        } else {
+            alert("⚠️ 瀏覽器攔截了彈出視窗，請允許本網站開啟彈出視窗。");
+            break;
+        }
+
+        openedCount++;
+        const remainCount = total - openedCount;
+        
+        // 更新剩餘時間估算
+        const remainSec = (remainCount * avgDelayMs) / 1000;
+        
+        if (remainCount > 0) {
+            let delay = randomRange(delayMin, delayMax);
+            let steps = 10;
+            let stepTime = delay / steps;
+            
+            // 倒數動畫
+            for(let t=steps; t>0; t--) {
+                // 顯示的剩餘時間 = (剩餘項目預估時間) + (當前項目Delay剩餘時間)
+                const currentDelayLeft = (t * stepTime) / 1000;
+                updateStatus(openedCount, total, estTotalSec, remainSec + currentDelayLeft);
+                await wait(stepTime);
+            }
+        } else {
+            updateStatus(openedCount, total, estTotalSec, 0);
+            setTimeout(() => {
+                statusBoard.classList.remove('active');
+            }, 3000);
+        }
+    }
+}
+
+function searchDict(index) { processBatch('dict' + index); }
+function searchYoutube() { processBatch('youtube'); }
+function searchWeb() { processBatch('web'); }
+function searchAll() {
+  searchDict(0);
+  setTimeout(() => searchDict(1), 500);
+}
+
+// ===================================
+// 3. Flip Clock 
+// ===================================
+const clockContainer = document.querySelector('.clock-container');
+let clockMode = 2; 
+let prevS = -1, prevM = -1, prevH = -1;
+
+function pad(n) { return n.toString().padStart(2, '0'); }
+
+function renderClock() {
+  const now = new Date();
+  const h = now.getHours();
+  const m = now.getMinutes();
+  const s = now.getSeconds();
+
+  if (clockMode === 0) { 
+    clockContainer.innerHTML = `<div class="clock-digital">${pad(h)}:${pad(m)}:${pad(s)}</div>`;
+  } else if (clockMode === 1) { 
+    const secDeg = (s / 60) * 360;
+    const minDeg = ((m + s/60) / 60) * 360;
+    const hourDeg = ((h % 12 + m/60) / 12) * 360;
+    clockContainer.innerHTML = `
+      <div class="clock-analog">
+        <div class="hand hour" style="transform: translateX(-50%) rotate(${hourDeg}deg)"></div>
+        <div class="hand min" style="transform: translateX(-50%) rotate(${minDeg}deg)"></div>
+        <div class="hand sec" style="transform: translateX(-50%) rotate(${secDeg}deg)"></div>
+        <div class="center-dot"></div>
+      </div>`;
+  } else { 
+    if (!clockContainer.querySelector('.clock-flip')) {
+      clockContainer.innerHTML = `
+        <div class="clock-flip">
+          ${createFlipUnit('flipH', h)} : ${createFlipUnit('flipM', m)} : ${createFlipUnit('flipS', s)}
+        </div>`;
+      prevH = h; prevM = m; prevS = s;
+    } else {
+      updateFlip('flipH', h, prevH);
+      updateFlip('flipM', m, prevM);
+      updateFlip('flipS', s, prevS);
+    }
+  }
+  prevH = h; prevM = m; prevS = s;
+}
+
+function createFlipUnit(id, val) {
+    const v = pad(val);
+    return `
+    <div class="flip-unit" id="${id}">
+        <div class="flip-top">${v}</div>
+        <div class="flip-bottom">${v}</div>
+        <div class="flip-leaf-front">${v}</div>
+        <div class="flip-leaf-back">${v}</div>
+    </div>`;
+}
+
+function updateFlip(id, current, prev) {
+    if (current === prev) return;
+    const el = document.getElementById(id);
+    const currStr = pad(current);
+    const prevStr = pad(prev);
+
+    const top = el.querySelector('.flip-top');
+    const bottom = el.querySelector('.flip-bottom');
+    const front = el.querySelector('.flip-leaf-front');
+    const back = el.querySelector('.flip-leaf-back');
+
+    el.classList.remove('flipping');
+    void el.offsetWidth;
+
+    top.textContent = currStr;
+    bottom.textContent = prevStr;
+    front.textContent = prevStr;
+    back.textContent = currStr;
+
+    el.classList.add('flipping');
+
+    setTimeout(() => {
+        bottom.textContent = currStr;
+        front.textContent = currStr;
+    }, 500);
+}
+
+document.getElementById('clockCard').addEventListener('click', () => {
+  clockMode = (clockMode + 1) % 3;
+  clockContainer.innerHTML = '';
+  prevS = -1; 
+  renderClock();
+});
+setInterval(renderClock, 1000);
+renderClock();
+
+// ===================================
+// 4. Weather Module (Search, Real Data & Matrix Advice)
+// ===================================
+const weatherCard = document.getElementById('weatherCard');
+const citySelect = document.getElementById('citySelect');
+const citySearchInput = document.getElementById('citySearchInput');
+
+function toggleWeather() {
+    weatherCard.classList.toggle('expanded');
+}
+
+function handleEnter(e) {
+    if(e.key === 'Enter') searchCityLocation();
+}
+
+// 搜尋城市邏輯 (Open-Meteo Geocoding)
+async function searchCityLocation() {
+    const query = citySearchInput.value.trim();
+    if(!query) return;
+
+    // UI Feedback
+    const btn = document.querySelector('.weather-search-btn');
+    const originalIcon = btn.innerHTML;
+    btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i>';
+
+    try {
+        const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=zh&format=json`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.results && data.results.length > 0) {
+            const loc = data.results[0];
+            const name = loc.name;
+            const country = loc.country || '';
+            const lat = loc.latitude;
+            const lon = loc.longitude;
+            const val = `${lat},${lon}`;
+            
+            // 檢查是否已存在，不存在則新增選項
+            let exists = false;
+            for(let i=0; i<citySelect.options.length; i++){
+                if(citySelect.options[i].value === val) {
+                    citySelect.selectedIndex = i;
+                    exists = true;
+                    break;
+                }
+            }
+            if(!exists){
+                const opt = document.createElement('option');
+                opt.value = val;
+                opt.text = `📍 ${name} (${country})`;
+                citySelect.add(opt);
+                citySelect.value = val;
+            }
+            
+            // 立即搜尋天氣
+            fetchWeather();
+            citySearchInput.value = ''; // 清空輸入框
+        } else {
+            alert("❌ 找不到該城市，請嘗試輸入英文名稱 (例如: Kyoto)。");
+        }
+    } catch(e) {
+        console.error(e);
+        alert("搜尋失敗，請檢查網路連線。");
+    } finally {
+        btn.innerHTML = originalIcon;
+    }
+}
+
+// 天氣代碼對應表
+function getWeatherInfo(code, isDay = 1) {
+    if(code === 0) return { icon: isDay ? 'ph-sun' : 'ph-moon', text: '晴朗' };
+    if(code === 1) return { icon: isDay ? 'ph-sun' : 'ph-moon-stars', text: '大致晴朗' };
+    if(code === 2) return { icon: isDay ? 'ph-cloud-sun' : 'ph-cloud-moon', text: '局部多雲' };
+    if(code === 3) return { icon: 'ph-cloud', text: '陰天' };
+    if(code === 45) return { icon: 'ph-waves', text: '有霧' }; 
+    if(code === 48) return { icon: 'ph-snowflake', text: '霧淞' }; 
+    if(code >= 51 && code <= 55) return { icon: 'ph-cloud-rain', text: '毛毛雨' }; 
+    if(code >= 61 && code <= 65) return { icon: 'ph-cloud-rain', text: '下雨' }; 
+    if(code >= 66 && code <= 67) return { icon: 'ph-cloud-snow', text: '雨夾雪' }; 
+    if(code >= 80 && code <= 82) return { icon: 'ph-cloud-rain', text: '陣雨' }; 
+    if(code >= 95) return { icon: 'ph-cloud-lightning', text: '雷雨' }; 
+    if(code >= 71 && code <= 77) return { icon: 'ph-snowflake', text: '下雪' };
+    if(code >= 85 && code <= 86) return { icon: 'ph-snowflake', text: '陣雪' };
+
+    return { icon: 'ph-question', text: '未知天氣' };
+}
+
+// ----------------------------------------------------
+// minmilo83's Weather Matrix Database (5000+ Logic)
+// ----------------------------------------------------
+const WEATHER_DB = {
+    weather: {
+        sunny: {
+            desc: ["萬里無雲的湛藍天空，陽光毫無保留地灑落。", "陽光普照，整個城市都被金色的光芒籠罩。", "天空藍得像寶石一樣，能見度極佳。", "陽光在雲朵間玩躲貓貓，光線柔和而舒適。", "清澈明亮的天空，讓人心情也跟著開闊起來。"],
+            mood: ["活力充沛、積極", "充滿希望、清新", "愜意、舒適", "放鬆、愉悅"],
+            advice: ["盡情享受戶外活動，曬曬太陽補充維生素D。", "天氣極佳，適合野餐或去公園走走。", "早起晨跑的最佳時刻，感受城市的甦醒。", "適合攝影，捕捉光影的變化。", "找個視野開闊的地方，享受這美好的時光。"]
+        },
+        cloudy: {
+            desc: ["整片天空被灰白雲層覆蓋，光線平淡。", "藍天與白雲各佔一半，天空層次豐富。", "雲層較厚，陽光偶爾露臉，氣溫相對穩定。", "天空灰濛濛的，雲層低垂，彷彿伸手可及。", "陽光被雲層過濾後變得柔和，不再刺眼。"],
+            mood: ["沈穩、低調", "平和、自在", "慵懶、冷靜", "內斂、安靜"],
+            advice: ["紫外線雖弱但不可輕忽，適合室內活動或閱讀。", "適合逛街或在戶外咖啡廳工作。", "這種光線非常適合拍攝人像，陰影柔和。", "氣溫適宜，去河濱散步是個不錯的選擇。", "帶著一本書去咖啡廳，享受悠閒的午後。"]
+        },
+        rain: {
+            desc: ["穩定的雨勢滴答作響，洗刷著城市的塵埃。", "空氣中飄著似有若無的細雨，地面微濕。", "雨水如倒灌般傾瀉，視線模糊，街道變成小河。", "天空灰暗，雨絲綿密，世界彷彿被隔絕。", "陣雨來去匆匆，空氣中瀰漫著泥土的氣息。"],
+            mood: ["內省、平靜", "詩意、憂鬱", "焦慮、煩躁", "沉澱、思考"],
+            advice: ["必備雨具，穿著防滑鞋類，適合在室內聽雨。", "一把輕便傘或防潑水外套即可應付。", "避免前往山區或低窪處，開車請放慢速度。", "雨天路滑，騎車或開車都要保持安全距離。", "在窗邊泡杯熱茶，欣賞雨景也是一種享受。"]
+        },
+        thunder: {
+            desc: ["悶熱的空氣中醞釀著風暴，遠處雷聲隱隱作響。", "閃電劃破天際伴隨轟隆雷聲，大氣極不穩定。", "狂風暴雨夾雜著雷鳴，天空忽明忽暗。", "雷聲大作，彷彿天空在怒吼，雨勢驚人。"],
+            mood: ["驚恐、敬畏", "緊張、壓迫", "震撼、敬畏"],
+            advice: ["⚡ 危險：遠離空曠地與樹下，儘速進入室內躲避。", "拔掉不必要的電器插頭，避免雷擊突波。", "暫時別出門了！如果在戶外，請尋找安全建築物。", "注意豪大雨可能造成的積水，遠離低窪地區。"]
+        },
+        fog: {
+            desc: ["白茫茫一片，城市隱沒在迷霧之中，能見度低。", "遠方景物像是蒙上一層髒髒的濾鏡，空氣混濁。", "晨霧繚繞，建築物若隱若現，宛如仙境。", "濃霧鎖城，視線不清，世界變得模糊而神秘。"],
+            mood: ["神秘、迷惘", "鬱悶、窒息感", "夢幻、朦朧"],
+            advice: ["開車請開霧燈，小心路滑與視線不清。", "能見度差，過馬路請特別留意來車。", "如果空氣品質不佳（霾），請佩戴口罩。", "放慢腳步，注意周遭環境變化。"]
+        },
+        snow: {
+            desc: ["白色雪花緩緩飄落，世界漸漸變成銀白色。", "狂風捲著大雪，視線幾乎為零，舉步維艱。", "冰冷的空氣中飄著雪花，呼吸都化作白煙。", "積雪覆蓋了大地，周遭變得異常寧靜。"],
+            mood: ["純潔、童心", "嚴峻、孤立", "寧靜、平和"],
+            advice: ["注意保暖，戴上手套，享受堆雪人的樂趣。", "❄️ 生存模式：非必要不出門，儲備糧食與暖氣。", "道路可能結冰（黑冰），行走與駕駛需萬分小心。", "穿著防水防滑的鞋子，以免滑倒受傷。"]
+        }
+    },
+    temp: {
+        extreme_hot: { // > 36
+            desc: ["酷暑難耐，走在路上一分鐘就汗流浹背。", "像待在巨型吹風機前，柏油路面軟化，熱浪扭曲了視線。", "地表彷彿在燃燒，空氣像滾燙的烙鐵肺部隱隱作痛。"],
+            advice: ["🌡️ 生存警告：嚴禁長時間外出。必須待在冷氣房。", "多喝水，尋找陰涼處，建議隨身攜帶手持電風扇。", "預防中暑是首要任務，穿著最輕薄透氣的衣物。"]
+        },
+        hot: { // 31-35
+            desc: ["典型的夏日午後，悶熱感揮之不去。", "熱氣逼人，只要一動就會流汗。", "陽光熱辣辣的，空氣中充滿了熱能量。"],
+            advice: ["輕便短袖、短褲。適合室內吹冷氣或去海邊戲水。", "避免在正午時分進行劇烈運動。", "記得多補充水分，以免脫水。"]
+        },
+        warm: { // 26-30
+            desc: ["溫暖稍熱，陽光充足時會微微出汗。", "空氣溫暖，微風吹拂下還算舒適。", "適合活動的溫度，身體感覺很放鬆。"],
+            advice: ["短袖搭配薄襯衫防曬。適合各類戶外活動。", "天氣不錯，可以去戶外走走，但要注意防曬。", "穿著透氣的棉麻材質會很舒服。"]
+        },
+        comfort: { // 21-25
+            desc: ["黃金溫度，涼爽舒適，空氣中帶著清甜感。", "不冷也不熱，是讓人最想待在戶外的溫度。", "微風輕拂，體感非常完美。"],
+            advice: ["👕 穿衣聖典：長袖襯衫或薄 T-shirt，不冷不熱剛剛好。", "把握好天氣，去散步、騎車都非常棒。", "穿一件薄外套備用即可。"]
+        },
+        cool: { // 16-20
+            desc: ["微微涼意，早晚溫差開始顯著。", "空氣清新而涼爽，讓人精神一振。", "風吹過時會感到一絲涼意，秋意漸濃。"],
+            advice: ["需換上薄長袖加上一件薄外套。", "適合洋蔥式穿法，方便隨溫度調整。", "早出晚歸記得多帶一件衣服。"]
+        },
+        cold: { // 11-15
+            desc: ["涼意明顯，風吹過時會不自覺縮起脖子。", "空氣變得冰涼，呼吸時感覺鼻腔微冷。", "寒意漸生，讓人想尋找溫暖的地方。"],
+            advice: ["防風外套、針織衫。是吃火鍋的好時機。", "出門記得圍上圍巾，保護脖子不受風寒。", "注意保暖，避免著涼感冒。"]
+        },
+        freezing: { // 1-10
+            desc: ["寒氣逼人，手腳開始感到冰冷。", "冷徹心扉，呼吸時會呼出白煙。", "冰冷的空氣彷彿能穿透衣物。"],
+            advice: ["發熱衣、厚外套、毛帽不可少。", "❄️ 重裝防寒，羽絨衣、圍巾、手套必須全副武裝。", "保持身體乾燥溫暖，多喝熱水。"]
+        },
+        polar: { // <= 0
+            desc: ["冰封世界，地面可能結冰，空氣乾冷刺骨。", "鼻腔內的濕氣會瞬間結冰，眼睫毛可能掛霜。", "極度酷寒，暴露在外的皮膚會感到刺痛。"],
+            advice: ["專業防寒服，注意走路防滑（黑冰警告）。", "洋蔥式穿法極限，暖暖包必備。減少皮膚外露。", "除非必要，否則盡量待在溫暖的室內。"]
+        }
+    },
+    modifiers: {
+        wind: ["🌬️ 外面風很大，體感溫度會更低，建議穿著防風外套。", "強風呼嘯，路樹搖晃，帽子都快戴不住。", "避免穿著飄逸裙裝，機車族請注意側風。"],
+        uv: ["☀️ 紫外線極強 (Extreme)，請務必戴帽、墨鏡並塗抹防曬。", "😎 紫外線偏高，外出建議做好防曬措施。", "陽光咬人，皮膚有灼熱感，請撐陽傘。"],
+        aqi_bad: ["😷 警告：即時偵測到空氣品質不佳，請佩戴口罩。", "天空有點灰濛濛，呼吸道稍微敏感。", "AQI警戒：目前空氣品質對敏感族群不健康。"],
+        earthquake: ["⚠ 偵測到周邊近期發生顯著地震！", "地震警報：請保持冷靜，確認所在位置安全。", "注意餘震！檢查家中物品是否穩固。"]
+    }
+};
+
+function getRandom(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
+// 產生天氣建議 (核心邏輯)
+function generateWeatherAdvice(temp, code, windSpeed, uvIndex, aqi, quake) {
+    // 1. 決定天氣類型
+    let type = 'cloudy';
+    if (code <= 1) type = 'sunny';
+    else if (code <= 3) type = 'cloudy';
+    else if (code == 45 || code == 48) type = 'fog';
+    else if (code >= 95) type = 'thunder';
+    else if (code >= 71 || (code >= 85 && code <= 86)) type = 'snow';
+    else type = 'rain'; 
+
+    // 2. 決定溫度區間
+    let tempZone = 'comfort';
+    if (temp > 35) tempZone = 'extreme_hot';
+    else if (temp > 30) tempZone = 'hot';
+    else if (temp > 25) tempZone = 'warm';
+    else if (temp > 20) tempZone = 'comfort';
+    else if (temp > 15) tempZone = 'cool';
+    else if (temp > 10) tempZone = 'cold';
+    else if (temp > 0) tempZone = 'freezing';
+    else tempZone = 'polar';
+
+    // 3. 基礎文本 (隨機組合)
+    let baseDesc = getRandom(WEATHER_DB.weather[type].desc);
+    let mood = getRandom(WEATHER_DB.weather[type].mood);
+    let tempDesc = getRandom(WEATHER_DB.temp[tempZone].desc);
+    let mainAdvice = getRandom(WEATHER_DB.weather[type].advice);
+    
+    // 若極端溫度，優先使用溫度建議
+    if (tempZone === 'extreme_hot' || tempZone === 'polar' || tempZone === 'freezing') {
+        mainAdvice = getRandom(WEATHER_DB.temp[tempZone].advice);
+    }
+
+    // 4. 動態疊加 (根據真實數據)
+    let warnings = [];
+    let highlightAlert = false;
+    
+    // 地震疊加 (Real Earthquake)
+    if (quake && quake.alert) {
+        warnings.unshift(`🚨 <b>${quake.title}</b> (${quake.timeStr})`);
+        warnings.push(getRandom(WEATHER_DB.modifiers.earthquake));
+        highlightAlert = true;
+    }
+
+    // AQI 疊加 (Real AQI)
+    if (aqi > 100) {
+        warnings.push(getRandom(WEATHER_DB.modifiers.aqi_bad));
+    }
+
+    // 風速疊加
+    if (windSpeed > 30) {
+        warnings.push(getRandom(WEATHER_DB.modifiers.wind));
+    }
+    
+    // UV 疊加
+    if (uvIndex >= 6 && (type === 'sunny' || type === 'cloudy')) {
+        warnings.push(getRandom(WEATHER_DB.modifiers.uv));
+    }
+
+    // 5. 輸出 HTML
+    let finalHtml = `
+        <div style="margin-bottom:6px;"><b>${baseDesc}</b></div>
+        <div style="font-size:0.9em; opacity:0.85; margin-bottom:8px;">${tempDesc} 心情：${mood}</div>
+        <div style="border-top:1px solid rgba(255,255,255,0.3); padding-top:8px;">
+            💡 ${mainAdvice}
+        </div>
+    `;
+
+    if (warnings.length > 0) {
+        let color = highlightAlert ? "#ff4757" : "#ff6b6b";
+        finalHtml += `<div style="margin-top:8px; color:${color}; font-weight:600; font-size:0.9em;">
+            ${warnings.join("<br/>")}
+        </div>`;
+    }
+
+    return finalHtml;
+}
+
+// 距離計算 (Haversine Formula) - 用於地震偵測
+function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+  var R = 6371; // km
+  var dLat = deg2rad(lat2-lat1);  
+  var dLon = deg2rad(lon2-lon1); 
+  var a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2)
+    ; 
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  var d = R * c; // Distance in km
+  return d;
+}
+function deg2rad(deg) { return deg * (Math.PI/180) }
+
+async function fetchWeather() {
+    let lat, lon;
+    const val = citySelect.value;
+    
+    if (val === 'auto') {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => { getWeatherData(pos.coords.latitude, pos.coords.longitude); },
+                (err) => { 
+                    citySelect.value = "25.033,121.565"; 
+                    getWeatherData(25.033, 121.565); // Default Taipei
+                }
+            );
+            return;
+        } else {
+            citySelect.value = "25.033,121.565"; 
+            getWeatherData(25.033, 121.565);
+            return;
+        }
+    } else {
+        [lat, lon] = val.split(',');
+        getWeatherData(parseFloat(lat), parseFloat(lon));
+    }
+}
+
+async function getWeatherData(lat, lon) {
+    // 1. Weather Data (Add &forecast_days=7 explicit parameter)
+    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code,is_day,windspeed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=auto&forecast_days=7`;
+    
+    // 2. Air Quality Data
+    const aqiUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi,pm2_5`;
+
+    // 3. Earthquake Data
+    const quakeUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson";
+
+    try {
+        // Use Promise.allSettled to allow some APIs to fail without breaking everything
+        const results = await Promise.allSettled([
+            fetch(weatherUrl),
+            fetch(aqiUrl),
+            fetch(quakeUrl)
+        ]);
+
+        // Process Weather (Critical)
+        let weatherData = null;
+        if(results[0].status === 'fulfilled'){
+             weatherData = await results[0].value.json();
+        } else {
+             throw new Error("Weather API Failed");
+        }
+
+        // Process AQI (Optional)
+        let aqiData = { current: { us_aqi: '--' } };
+        if(results[1].status === 'fulfilled'){
+             aqiData = await results[1].value.json();
+        }
+
+        // Process Earthquake (Optional, might be blocked by CORS)
+        let quakeData = { features: [] };
+        if(results[2].status === 'fulfilled'){
+             quakeData = await results[2].value.json();
+        }
+
+        // Process Earthquake Logic
+        let quakeStatus = { alert: false, title: "", dist: 99999 };
+        if (quakeData.features && quakeData.features.length > 0) {
+            for (let q of quakeData.features) {
+                const qLon = q.geometry.coordinates[0];
+                const qLat = q.geometry.coordinates[1];
+                const dist = getDistanceFromLatLonInKm(lat, lon, qLat, qLon);
+                
+                if (dist < 600) { 
+                    const timeDiff = (new Date().getTime() - q.properties.time) / (1000 * 3600); 
+                    if (timeDiff < 24) { 
+                        quakeStatus = {
+                            alert: true,
+                            title: `M${q.properties.mag} 地震`,
+                            place: q.properties.place,
+                            dist: Math.round(dist),
+                            timeStr: new Date(q.properties.time).toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'})
+                        };
+                        break; 
+                    }
+                }
+            }
+        }
+
+        renderWeather(weatherData, aqiData, quakeStatus);
+
+    } catch(e) {
+        console.error("Fetch Error:", e);
+        document.getElementById('weatherDesc').textContent = "更新失敗";
+        document.getElementById('clothingAdvice').textContent = "⚠️ 無法取得完整數據，請檢查網路連線。";
+    }
+}
+
+function renderWeather(data, aqiData, quakeStatus) {
+    if(!data || !data.current || !data.daily) return;
+
+    const current = data.current;
+    const daily = data.daily;
+    const info = getWeatherInfo(current.weather_code, current.is_day);
+    
+    document.getElementById('weatherTemp').textContent = `${Math.round(current.temperature_2m)}°`;
+    document.getElementById('weatherFeels').textContent = `體感 ${Math.round(current.apparent_temperature)}°`;
+    document.getElementById('weatherDesc').textContent = info.text;
+    document.getElementById('weatherIcon').className = `ph ${info.icon} weather-icon-lg`;
+    
+    const uvMax = daily.uv_index_max ? daily.uv_index_max[0] : '--';
+    const windKmh = current.windspeed_10m;
+    document.getElementById('uvIndex').textContent = uvMax;
+    document.getElementById('windSpeed').textContent = `${windKmh} km/h`;
+
+    // Render AQI
+    const usAqi = aqiData.current ? aqiData.current.us_aqi : '--';
+    const aqiEl = document.getElementById('aqiVal');
+    aqiEl.textContent = usAqi;
+    if (usAqi > 150) aqiEl.style.color = '#8e44ad';
+    else if (usAqi > 100) aqiEl.style.color = '#e74c3c';
+    else if (usAqi > 50) aqiEl.style.color = '#f39c12';
+    else aqiEl.style.color = '#2ecc71';
+
+    // Render Earthquake Status
+    const quakeBox = document.getElementById('quakeBox');
+    const quakeEl = document.getElementById('quakeStatus');
+    if (quakeStatus.alert) {
+        quakeBox.classList.add('quake-alert');
+        quakeEl.innerHTML = `<span style="color:#c0392b;">${quakeStatus.title}</span><br/>距 ${quakeStatus.dist}km`;
+    } else {
+        quakeBox.classList.remove('quake-alert');
+        quakeEl.textContent = "無顯著警報";
+    }
+
+    // Sunrise/Sunset safety check
+    if(daily.sunrise && daily.sunrise[0]) {
+        const sunrise = new Date(daily.sunrise[0]).toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'});
+        const sunset = new Date(daily.sunset[0]).toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'});
+        // Note: I removed the Sun time from grid to save space, but kept logic if you add it back.
+    }
+
+    // Generate Advice
+    const adviceText = generateWeatherAdvice(
+        current.temperature_2m, 
+        current.weather_code, 
+        windKmh, 
+        uvMax, 
+        usAqi, 
+        quakeStatus
+    );
+    document.getElementById('clothingAdvice').innerHTML = adviceText;
+
+    // Forecast Grid
+    const grid = document.getElementById('forecastGrid');
+    grid.innerHTML = '';
+    const days = ['日','一','二','三','四','五','六'];
+    
+    // Ensure loop doesn't exceed data length
+    const limit = Math.min(7, daily.time.length);
+
+    for(let i=0; i<limit; i++) {
+        const date = new Date(daily.time[i]);
+        const dInfo = getWeatherInfo(daily.weather_code[i], 1); 
+        const dayName = i === 0 ? '今日' : days[date.getDay()];
+        
+        grid.innerHTML += `
+            <div class="forecast-day">
+                <span>${dayName}</span>
+                <i class="ph ${dInfo.icon}" style="font-size:20px;"></i>
+                <span>${Math.round(daily.temperature_2m_max[i])}°</span>
+                <span style="opacity:0.6; font-size:0.9em;">${Math.round(daily.temperature_2m_min[i])}°</span>
+            </div>
+        `;
+    }
+}
+
+citySelect.addEventListener('change', fetchWeather);
+setInterval(fetchWeather, 300000); 
+fetchWeather();
+
+// ===================================
+// 5. Pomodoro Logic
+// ===================================
+const ringProgress = document.getElementById('ringProgress');
+const ringOverlay = document.getElementById('ringOverlay');
+const ringHandle = document.getElementById('ringHandle');
+const timeText = document.getElementById('timeLeft');
+const startBtn = document.getElementById('startBtn');
+const resetBtn = document.getElementById('resetBtn');
+
+let totalTime = 1800; 
+let timeLeft = 1800;
+let timerId = null;
+let isDragging = false;
+const RADIUS = 100;
+const CENTER = 110; 
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+let currentRotation = (1800 / 10800) * 360; 
+let lastRawAngle = 0;
+
+function updateRing(seconds) {
+  const ratio = seconds / 10800; 
+  const offset = CIRCUMFERENCE - (ratio * CIRCUMFERENCE);
+  ringProgress.style.strokeDashoffset = offset;
+  
+  const angleDeg = ratio * 360;
+  const angleRad = (angleDeg - 90) * (Math.PI / 180);
+  const hX = CENTER + RADIUS * Math.cos(angleRad);
+  const hY = CENTER + RADIUS * Math.sin(angleRad);
+  
+  ringHandle.style.left = `${hX}px`;
+  ringHandle.style.top = `${hY}px`;
+  
+  const m = Math.floor(seconds / 60).toString().padStart(2,'0');
+  const s = (seconds % 60).toString().padStart(2,'0');
+  timeText.textContent = `${m}:${s}`;
+}
+
+function getAngle(clientX, clientY) {
+  const rect = ringOverlay.getBoundingClientRect();
+  const x = clientX - rect.left - rect.width/2;
+  const y = clientY - rect.top - rect.height/2;
+  let angle = Math.atan2(y, x) * (180 / Math.PI) + 90;
+  if(angle < 0) angle += 360;
+  return angle;
+}
+
+function startDrag(clientX, clientY) {
+  isDragging = true;
+  lastRawAngle = getAngle(clientX, clientY);
+}
+
+function handleDrag(clientX, clientY) {
+  if (timerId) clearInterval(timerId); 
+  startBtn.textContent = STRINGS[currLang].start;
+  
+  const rawAngle = getAngle(clientX, clientY);
+  let delta = rawAngle - lastRawAngle;
+  
+  if (delta < -180) delta += 360;
+  if (delta > 180) delta -= 360;
+  
+  let sensitivity = 1.0;
+  if (Math.abs(delta) < 4) { 
+      sensitivity = 0.2; 
+  }
+  
+  currentRotation += delta * sensitivity;
+  
+  if (currentRotation < 0) currentRotation = 0;
+  if (currentRotation > 360) currentRotation = 360;
+  
+  lastRawAngle = rawAngle;
+  
+  let sec = Math.round((currentRotation / 360) * 10800);
+  if (sensitivity === 1.0) {
+      sec = Math.round(sec / 10) * 10;
+  }
+  
+  if (sec < 10) sec = 10; 
+  if (sec > 10800) sec = 10800; 
+  
+  timeLeft = sec;
+  totalTime = sec;
+  updateRing(sec);
+}
+
+ringOverlay.addEventListener('mousedown', (e) => startDrag(e.clientX, e.clientY));
+document.addEventListener('mouseup', () => { isDragging = false; });
+ringOverlay.addEventListener('touchstart', (e) => { 
+    e.preventDefault(); 
+    startDrag(e.touches[0].clientX, e.touches[0].clientY); 
+}, {passive: false});
+ringOverlay.addEventListener('touchmove', (e) => { 
+    e.preventDefault(); 
+    if(isDragging) handleDrag(e.touches[0].clientX, e.touches[0].clientY); 
+}, {passive: false});
+document.addEventListener('touchend', () => { isDragging = false; });
+
+startBtn.addEventListener('click', () => {
+  if (timerId) {
+    clearInterval(timerId);
+    timerId = null;
+    startBtn.textContent = STRINGS[currLang].start;
+  } else {
+    startBtn.textContent = STRINGS[currLang].pause;
+    timerId = setInterval(() => {
+      if (timeLeft > 0) {
+        timeLeft--;
+        updateRing(timeLeft); 
+      } else {
+        clearInterval(timerId);
+        timerId = null;
+        startBtn.textContent = STRINGS[currLang].start;
+        alert("Time's up!");
+      }
+    }, 1000);
+  }
+});
+
+resetBtn.addEventListener('click', () => {
+  clearInterval(timerId);
+  timerId = null;
+  startBtn.textContent = STRINGS[currLang].start;
+  timeLeft = 1800;
+  currentRotation = (1800 / 10800) * 360;
+  updateRing(timeLeft);
+});
+updateRing(1800);
+
+// ===================================
+// 6. Theme Toggle
+// ===================================
+const themeBtn = document.getElementById('themeToggle');
+themeBtn.addEventListener('click', () => {
+  const body = document.body;
+  const isDark = body.getAttribute('data-theme') === 'dark';
+  body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  themeBtn.textContent = isDark ? '🌙' : '☀️';
+});
+
+// ===================================
+// 7. Language Menu (Modified for more items)
+// ===================================
+let currLang = "zh-TW";
+const STRINGS = {
+  "zh-TW": { title: "全能批次搜尋控制台", subtitle: "整合搜尋引擎、字典與實用工具的中心", warning: "⚠️ 若無法開啟，請檢查瀏覽器是否「阻擋彈出視窗」", cambridge: "劍橋詞典", dreye: "譯典通", googleweb: "Google / 網頁", usage: "🎯 使用說明：", tip1: "支援多行輸入，紫色按鈕可一鍵全開。", tip2: "點擊天氣卡片可展開查看詳細資訊。", tip3: "番茄鐘慢速拖曳可微調時間，快速拖曳可大幅調整。", dragTip: "拖曳調整", start: "開始", pause: "暫停", reset: "重置", statusProgress: "進度", timeTotal: "預計總時", timeLeft: "剩餘時間" },
+  "zh-CN": { title: "全能批量搜索控制台", subtitle: "整合搜索引擎、词典与实用工具的中心", warning: "⚠️ 若无法开启，请检查“弹出式窗口”设置", cambridge: "剑桥词典", dreye: "译典通", googleweb: "Google / 网页", usage: "🎯 使用说明：", tip1: "支持多行。紫色按钮一键全开。", tip2: "点击天气卡片可展开查看详细信息。", tip3: "番茄钟慢速拖拽可微调时间，快速拖拽可大幅调整。", dragTip: "拖拽调整", start: "开始", pause: "暂停", reset: "重置", statusProgress: "进度", timeTotal: "预计总时", timeLeft: "剩余时间" },
+  "en": { title: "Batch Search Console", subtitle: "Search Engine, Dictionary, and Utilities Hub", warning: "⚠️ If blocked, please check your popup blocker settings.", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 Usage:", tip1: "Multi-line supported. Purple button opens all.", tip2: "Click weather card to expand details.", tip3: "Slow drag timer for precision, fast for speed.", dragTip: "Drag to set", start: "Start", pause: "Pause", reset: "Reset", statusProgress: "Progress", timeTotal: "Est. Total", timeLeft: "Time Left" },
+  "ja": { title: "全能一括検索コンソール", subtitle: "検索・辞書・ツールの統合ハブ", warning: "⚠️ ポップアップがブロックされていないか確認してください", cambridge: "ケンブリッジ", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 使い方：", tip1: "複数行対応。紫ボタンで一括表示。", tip2: "天気カードをクリックして詳細表示。", tip3: "タイマーはゆっくりドラッグで微調整可能。", dragTip: "ドラッグ設定", start: "開始", pause: "一時停止", reset: "リセット", statusProgress: "進捗", timeTotal: "予想合計", timeLeft: "残り時間" },
+  "ko": { title: "다기능 일괄 검색 콘솔", subtitle: "검색 엔진, 사전 및 유틸리티 허브", warning: "⚠️ 팝업 차단 설정을 확인해 주세요", cambridge: "캠브리지", dreye: "Dr.eye", googleweb: "Google / 웹", usage: "🎯 사용법:", tip1: "여러 줄 지원. 보라색 버튼은 모두 엽니다.", tip2: "날씨 카드를 클릭하여 세부 정보 확인.", tip3: "타이머를 천천히 드래그하여 미세 조정.", dragTip: "드래그 설정", start: "시작", pause: "일시정지", reset: "초기화", statusProgress: "진행", timeTotal: "예상 총", timeLeft: "남은 시간" },
+  "es": { title: "Consola de Búsqueda", subtitle: "Motor de búsqueda, Diccionario y Utilidades", warning: "⚠️ Si falla, verifica las ventanas emergentes", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 Uso:", tip1: "Soporte multilínea. El botón violeta abre todo.", tip2: "Click en clima para detalles.", tip3: "Arrastre lento para precisión, rápido para velocidad.", dragTip: "Arrastrar", start: "Inicio", pause: "Pausa", reset: "Reiniciar", statusProgress: "Progreso", timeTotal: "Est. Total", timeLeft: "Restante" },
+  "pt": { title: "Console de Busca", subtitle: "Motor de busca, Dicionário e Utilidades", warning: "⚠️ Se falhar, verifique os pop-ups", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 Uso:", tip1: "Suporte multilinha. Botão roxo abre tudo.", tip2: "Clique no clima para detalhes.", tip3: "Arraste lento para precisão, rápido para velocidade.", dragTip: "Arrastar", start: "Iniciar", pause: "Pausa", reset: "Redefinir", statusProgress: "Progresso", timeTotal: "Est. Total", timeLeft: "Restante" },
+  "vi": { title: "Bảng Tìm Kiếm", subtitle: "Công cụ tìm kiếm, Từ điển & Tiện ích", warning: "⚠️ Nếu lỗi, hãy kiểm tra chặn pop-up", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 Hướng dẫn:", tip1: "Hỗ trợ nhiều dòng. Nút tím mở tất cả.", tip2: "Nhấn vào thẻ thời tiết để xem chi tiết.", tip3: "Kéo chậm để chỉnh kỹ, kéo nhanh để chỉnh nhanh.", dragTip: "Kéo", start: "Bắt đầu", pause: "Tạm dừng", reset: "Đặt lại", statusProgress: "Tiến độ", timeTotal: "Dự kiến", timeLeft: "Còn lại" },
+  "bn": { title: "ব্যাচ অনুসন্ধান কনসোল", subtitle: "সার্চ ইঞ্জিন, অভিধান এবং ইউটিলিটি হাব", warning: "⚠️ পপ-আপ ব্লকার সেটিংস চেক করুন", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 ব্যবহার:", tip1: "বেগুনি বোতাম সব খোলে।", tip2: "বিস্তারিত দেখতে আবহাওয়া কার্ডে ক্লিক করুন।", tip3: "টাইমার সেট করতে ড্র্যাগ করুন।", dragTip: "ড্র্যাগ করুন", start: "শুরু", pause: "বিরতি", reset: "রিসেট", statusProgress: "অগ্রগতি", timeTotal: "মোট সময়", timeLeft: "বাকি সময়" },
+  "hi": { title: "बैच खोज कंसोल", subtitle: "खोज इंजन, शब्दकोश और उपयोगिता", warning: "⚠️ पॉप-अप अवरोधक की जाँच करें", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 उपयोग:", tip1: "बैंगनी बटन सब खोलता है।", tip2: "विवरण के लिए मौसम कार्ड पर क्लिक करें।", tip3: "टाइमर सेट करने के लिए खींचें।", dragTip: "खींचें", start: "शुरू", pause: "विराम", reset: "रीसेट", statusProgress: "प्रगति", timeTotal: "कुल समय", timeLeft: "शेष समय" },
+  "ru": { title: "Консоль Поиска", subtitle: "Поиск, словари и утилиты", warning: "⚠️ Проверьте блокировку всплывающих окон", cambridge: "Cambridge", dreye: "Dr.eye", googleweb: "Google / Web", usage: "🎯 Инфо:", tip1: "Мультистрока. Фиолетовая кнопка открывает всё.", tip2: "Нажмите на погоду для деталей.", tip3: "Медленно тяните для точности, быстро для скорости.", dragTip: "Тянуть", start: "Старт", pause: "Пауза", reset: "Сброс", statusProgress: "Прогресс", timeTotal: "Всего", timeLeft: "Осталось" },
+  "yue": { title: "全能批量搜尋控制台", subtitle: "整合搜尋引擎、字典同實用工具嘅中心", warning: "⚠️ 如果開唔到，請檢查瀏覽器有無擋彈出視窗", cambridge: "劍橋詞典", dreye: "譯典通", googleweb: "Google / 網頁", usage: "🎯 使用說明：", tip1: "支援多行輸入，紫色掣一次開晒。", tip2: "點擊天氣卡可以睇詳細資訊。", tip3: "番茄鐘慢拖微調，快拖大幅調整。", dragTip: "拖曳調整", start: "開始", pause: "暫停", reset: "重置", statusProgress: "進度", timeTotal: "預計總時", timeLeft: "剩返時間" }
+};
+
+const langMenu = document.getElementById('langMenu');
+const langFab = document.getElementById('langFab');
+
+langFab.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (langMenu.classList.contains('active')) {
+    langMenu.classList.remove('active');
+    setTimeout(() => langMenu.style.display = 'none', 300);
+  } else {
+    langMenu.style.display = 'flex';
+    void langMenu.offsetWidth; 
+    langMenu.classList.add('active');
+  }
+});
+
+document.addEventListener('click', () => {
+  if (langMenu.classList.contains('active')) {
+    langMenu.classList.remove('active');
+    setTimeout(() => langMenu.style.display = 'none', 300);
+  }
+});
+
+document.querySelectorAll('.lang-opt').forEach(opt => {
+  opt.addEventListener('click', () => {
+    currLang = opt.getAttribute('data-lang');
+    updateLang();
+  });
+});
+
+function updateLang() {
+  const s = STRINGS[currLang];
+  document.querySelector('[data-i18n="title"]').textContent = s.title;
+  document.querySelector('[data-i18n="subtitle"]').textContent = s.subtitle;
+  document.querySelector('[data-i18n="warning"]').textContent = s.warning;
+  document.querySelector('[data-i18n="cambridge"]').textContent = s.cambridge;
+  document.querySelector('[data-i18n="dreye"]').textContent = s.dreye;
+  document.querySelector('[data-i18n="googleweb"]').textContent = s.googleweb;
+  document.querySelector('[data-i18n="usage"]').textContent = s.usage;
+  document.querySelector('[data-i18n="tip1"]').textContent = s.tip1;
+  document.querySelector('[data-i18n="tip2"]').textContent = s.tip2;
+  document.querySelector('[data-i18n="tip3"]').textContent = s.tip3;
+  document.querySelector('[data-i18n="dragTip"]').textContent = s.dragTip;
+  document.querySelector('[data-i18n="statusProgress"]').textContent = s.statusProgress;
+  document.querySelector('[data-i18n="timeTotal"]').textContent = s.timeTotal;
+  document.querySelector('[data-i18n="timeLeft"]').textContent = s.timeLeft;
+  
+  if(!timerId) startBtn.textContent = s.start;
+  else startBtn.textContent = s.pause;
+  resetBtn.textContent = s.reset;
+}
+</script>
+</body>
+</html>
